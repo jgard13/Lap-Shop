@@ -1,0 +1,4 @@
+.buscar { padding: 12px; }
+.search-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
+.search-row input { flex:1; padding:8px 10px; border-radius:6px; border:1px solid #ccc }
+.search-row .btn { padding:8px 12px; border-radius:6px; background:#2B61E1; color:#fff; border:0 }

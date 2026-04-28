@@ -1,0 +1,15 @@
+<div *ngIf="carrito().length > 0" style="margin-top: 16px; border-top: 1px solid #eee; padding-top: 16px;">
+  <div style="background-color: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 1px dashed #ccc;">
+    <p style="margin: 0; font-size: 13px; color: #555;">
+      Al pagar con PayPal, se generará y descargará tu recibo automáticamente.
+    </p>
+  </div>
+
+  <div #paypalButtonContainer></div>
+
+  <p *ngIf="mensaje" [style.color]="mensaje.includes('correctamente') ? '#28a745' : '#dc3545'" 
+     style="margin-top: 12px; font-weight: bold; text-align: center;">
+    {{ mensaje }}
+  </p>
+</div>
+

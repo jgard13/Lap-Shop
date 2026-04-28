@@ -1,0 +1,38 @@
+<section class="cart">
+  <div class="cart-header">
+    <h2 class="title">Carrito</h2>
+    <button class="close" (click)="onClose()">✕</button>
+  </div>
+
+  <div *ngIf="carrito().length === 0">
+    <p class="empty">Tu carrito está vacío.</p>
+  </div>
+
+  <div *ngIf="carrito().length > 0">
+    <ul class="list">
+      <li class="item" *ngFor="let producto of carrito()">
+        <span class="line">
+          {{ producto.name }} - {{ producto.price | currency:'MXN' }}
+        </span>
+
+        <button class="btn danger" (click)="quitar(producto.id)">
+          Quitar
+        </button>
+      </li>
+    </ul>
+
+    <div class="total">
+      Total: {{ total() | currency:'MXN' }}
+    </div>
+
+    <div class="actions">
+      <button class="btn" (click)="vaciar()">Vaciar carrito</button>
+      <button class="btn purple" (click)="exportarXML()">Exportar Recibo XML</button>
+    </div>
+
+    <div class="paypal-container" style="margin-top: 20px;">
+      <app-checkout></app-checkout>
+    </div>
+  </div>
+</section>
+

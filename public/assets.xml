@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<products>
+  <product>
+    <id>1</id>
+    <name>Lenovo ThinkPad X1 Carbon Gen 11</name>
+    <price>1899</price>
+    <imageUrl>images/Laptop_1.jpg</imageUrl>
+    <category>Laptops</category>
+    <description>Ultraligera de fibra de carbono, Intel i7-1365U, 16GB RAM, 512GB SSD.</description>
+    <inStock>true</inStock>
+  </product>
+
+  <product>
+    <id>2</id>
+    <name>MacBook Pro 14" M3 Pro</name>
+    <price>2499</price>
+    <imageUrl>images/Laptop_2.jpg</imageUrl>
+    <category>Laptops</category>
+    <description>Apple M3 Pro (11 núcleos), 18GB RAM, 512GB SSD, Liquid Retina XDR.</description>
+    <inStock>true</inStock>
+  </product>
+
+  <product>
+    <id>3</id>
+    <name>HP Spectre x360 14</name>
+    <price>1599</price>
+    <imageUrl>images/Laptop_3.jpg</imageUrl>
+    <category>Laptops</category>
+    <description>Convertible 2-en-1, pantalla OLED táctil, Intel i7, 16GB RAM.</description>
+    <inStock>true</inStock>
+  </product>
+
+  <product>
+    <id>4</id>
+    <name>Dell XPS 13 Plus</name>
+    <price>1399</price>
+    <imageUrl>images/Laptop_4.jpg</imageUrl>
+    <category>Laptops</category>
+    <description>Diseño minimalista, teclado de borde a borde, Intel i7, 16GB RAM.</description>
+    <inStock>true</inStock>
+  </product>
+
+  <product>
+    <id>5</id>
+    <name>ASUS ROG Zephyrus G14</name>
+    <price>1799</price>
+    <imageUrl>images/Laptop_5.jpg</imageUrl>
+    <category>Laptops</category>
+    <description>Gaming potente, AMD Ryzen 9, RTX 4060, 16GB RAM, pantalla 120Hz.</description>
+    <inStock>false</inStock>
+  </product>
+
+  <product>
+    <id>6</id>
+    <name>Acer Swift 14</name>
+    <price>899</price>
+    <imageUrl>images/Laptop_6.jpg</imageUrl>
+    <category>Laptops</category>
+    <description>Chasis de aluminio aeroespacial, Intel i5, 16GB RAM, 512GB SSD.</description>
+    <inStock>true</inStock>
+  </product>
+
+  <product>
+    <id>7</id>
+    <name>Microsoft Surface Laptop 5</name>
+    <price>1299</price>
+    <imageUrl>images/Laptop_7.jpg</imageUrl>
+    <category>Laptops</category>
+    <description>Elegante y ligera, pantalla táctil 13.5", Intel i5, 256GB SSD.</description>
+    <inStock>true</inStock>
+  </product>
+
+  <product>
+    <id>8</id>
+    <name>Razer Blade 15</name>
+    <price>2999</price>
+    <imageUrl>images/Laptop_8.jpg</imageUrl>
+    <category>Laptops</category>
+    <description>Gráficos extremos, Intel i9, RTX 4080, 32GB RAM, 1TB SSD.</description>
+    <inStock>true</inStock>
+  </product>
+
+  <product>
+    <id>9</id>
+    <name>Samsung Galaxy Book3 Ultra</name>
+    <price>2199</price>
+    <imageUrl>images/Laptop_9.jpg</imageUrl>
+    <category>Laptops</category>
+    <description>Pantalla Dynamic AMOLED 2X, Intel i9, RTX 4050, 16GB RAM.</description>
+    <inStock>true</inStock>
+  </product>
+
+  <product>
+    <id>10</id>
+    <name>MSI Stealth 14 Studio</name>
+    <price>1699</price>
+    <imageUrl>images/Laptop_10.jpg</imageUrl>
+    <category>Laptops</category>
+    <description>Alto rendimiento para creadores, Intel i7, RTX 4060, Chasis de magnesio.</description>
+    <inStock>true</inStock>
+  </product>
+</products>
