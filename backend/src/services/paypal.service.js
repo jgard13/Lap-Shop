@@ -1,105 +1,95 @@
-const paypalConfig = require('../config/paypal.config');
+const paypalClient = require('./paypal.client');
 
-function getBasicAuth() {
-  return Buffer.from(`${paypalConfig.clientId}:${paypalConfig.clientSecret}`).toString('base64');
+function normalizeItem(item) {
+  const quantity = Number(item.cantidad || item.quantity || 1);
+  const unitPrice = Number(item.precio || item.price || 0);
+  return {
+    name: String(item.nombre || item.name || 'Producto').substring(0, 127),
+    quantity: String(quantity > 0 ? quantity : 1),
+    unit_amount: {
+      currency_code: 'MXN',
+      value: unitPrice.toFixed(2)
+    }
+  };
 }
 
-async function getAccessToken() {
-  const response = await fetch(`${paypalConfig.baseUrl}/v1/oauth2/token`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${getBasicAuth()}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: 'grant_type=client_credentials'
-  });
+function buildPurchaseUnits(items) {
+  const normalizedItems = items.map(normalizeItem);
+  const itemTotal = normalizedItems.reduce((sum, item) => {
+    return sum + Number(item.unit_amount.value) * Number(item.quantity);
+  }, 0);
 
-  const data = await response.json();
+  const total = itemTotal.toFixed(2);
 
-  if (!response.ok) {
-    throw new Error(`Error obteniendo access token: ${JSON.stringify(data)}`);
-  }
-
-  return data.access_token;
-}
-
-async function createPaypalOrder(orderData) {
-  const accessToken = await getAccessToken();
-
-  const processedItems = orderData.items.map(item => {
-    const qty = 1; // Backend assumes 1 per array entry, as per frontend logic
-    const unitPrice = Number(item.precio || item.price || 0).toFixed(2);
-    return {
-      name: (item.nombre || item.name || 'Item').substring(0, 127),
-      quantity: String(qty),
-      unit_amount: {
-        currency_code: 'MXN',
-        value: unitPrice
-      }
-    };
-  });
-
-  const calculatedTotal = processedItems.reduce((acc, item) => acc + (Number(item.unit_amount.value) * Number(item.quantity)), 0).toFixed(2);
-
-  const body = {
-    intent: 'CAPTURE',
+  return {
     purchase_units: [
       {
         amount: {
           currency_code: 'MXN',
-          value: calculatedTotal,
+          value: total,
           breakdown: {
             item_total: {
               currency_code: 'MXN',
-              value: calculatedTotal
+              value: total
             }
           }
         },
-        items: processedItems
+        items: normalizedItems
       }
     ]
   };
+}
 
-  const response = await fetch(`${paypalConfig.baseUrl}/v2/checkout/orders`, {
+function validateOrderPayload(orderData) {
+  if (!orderData || !Array.isArray(orderData.items) || orderData.items.length === 0) {
+    throw new Error('El carrito está vacío o la información de items no es válida');
+  }
+
+  const totalSent = Number(orderData.total);
+  if (Number.isNaN(totalSent) || totalSent <= 0) {
+    throw new Error('El total es inválido');
+  }
+}
+
+async function createPaypalOrder(orderData) {
+  validateOrderPayload(orderData);
+
+  const body = {
+    intent: 'CAPTURE',
+    ...buildPurchaseUnits(orderData.items)
+  };
+
+  const response = await paypalClient.request('/v2/checkout/orders', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${accessToken}`
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify(body)
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(`Error creando orden PayPal: ${JSON.stringify(data)}`);
-  }
-
-  return data;
+  return {
+    id: response.id,
+    status: response.status,
+    links: response.links
+  };
 }
 
 async function capturePaypalOrder(orderId) {
-  const accessToken = await getAccessToken();
+  if (!orderId) {
+    throw new Error('orderId es obligatorio');
+  }
 
-  const response = await fetch(`${paypalConfig.baseUrl}/v2/checkout/orders/${orderId}/capture`, {
+  const response = await paypalClient.request(`/v2/checkout/orders/${orderId}/capture`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${accessToken}`
+      'Content-Type': 'application/json'
     }
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(`Error capturando orden PayPal: ${JSON.stringify(data)}`);
-  }
-
-  return data;
+  return response;
 }
 
 module.exports = {
-  getAccessToken,
   createPaypalOrder,
   capturePaypalOrder
 };
