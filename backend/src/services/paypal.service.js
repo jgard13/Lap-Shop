@@ -1,105 +1,82 @@
-const paypalConfig = require('../config/paypal.config');
+const config = require('../config/paypal.config');
 
-function getBasicAuth() {
-  return Buffer.from(`${paypalConfig.clientId}:${paypalConfig.clientSecret}`).toString('base64');
-}
-
-async function getAccessToken() {
-  const response = await fetch(`${paypalConfig.baseUrl}/v1/oauth2/token`, {
+const generateAuthToken = async () => {
+  const credentials = Buffer.from(`${config.clientId}:${config.clientSecret}`).toString('base64');
+  
+  const req = await fetch(`${config.baseUrl}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
-      'Authorization': `Basic ${getBasicAuth()}`,
+      Authorization: `Basic ${credentials}`,
       'Content-Type': 'application/x-www-form-urlencoded'
     },
     body: 'grant_type=client_credentials'
   });
 
-  const data = await response.json();
+  const res = await req.json();
+  if (!req.ok) throw new Error(`Fallo obteniendo token: ${JSON.stringify(res)}`);
+  return res.access_token;
+};
 
-  if (!response.ok) {
-    throw new Error(`Error obteniendo access token: ${JSON.stringify(data)}`);
-  }
+const createPaypalOrder = async (cartData) => {
+  const token = await generateAuthToken();
+  let totalCalculado = 0;
 
-  return data.access_token;
-}
-
-async function createPaypalOrder(orderData) {
-  const accessToken = await getAccessToken();
-
-  const processedItems = orderData.items.map(item => {
-    const qty = 1; // Backend assumes 1 per array entry, as per frontend logic
-    const unitPrice = Number(item.precio || item.price || 0).toFixed(2);
+  const productosFormateados = cartData.items.map(prod => {
+    const precioUnitario = Number(prod.precio || prod.price || 0);
+    totalCalculado += precioUnitario;
+    
     return {
-      name: (item.nombre || item.name || 'Item').substring(0, 127),
-      quantity: String(qty),
-      unit_amount: {
-        currency_code: 'MXN',
-        value: unitPrice
-      }
+      name: (prod.nombre || prod.name || 'Articulo').substring(0, 127),
+      quantity: '1',
+      unit_amount: { currency_code: 'MXN', value: precioUnitario.toFixed(2) }
     };
   });
 
-  const calculatedTotal = processedItems.reduce((acc, item) => acc + (Number(item.unit_amount.value) * Number(item.quantity)), 0).toFixed(2);
-
-  const body = {
+  const montoFinal = totalCalculado.toFixed(2);
+  const payload = {
     intent: 'CAPTURE',
-    purchase_units: [
-      {
-        amount: {
-          currency_code: 'MXN',
-          value: calculatedTotal,
-          breakdown: {
-            item_total: {
-              currency_code: 'MXN',
-              value: calculatedTotal
-            }
-          }
-        },
-        items: processedItems
-      }
-    ]
+    purchase_units: [{
+      amount: {
+        currency_code: 'MXN',
+        value: montoFinal,
+        breakdown: { item_total: { currency_code: 'MXN', value: montoFinal } }
+      },
+      items: productosFormateados
+    }]
   };
 
-  const response = await fetch(`${paypalConfig.baseUrl}/v2/checkout/orders`, {
+  const req = await fetch(`${config.baseUrl}/v2/checkout/orders`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${accessToken}`
+      Authorization: `Bearer ${token}`
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(payload)
   });
 
-  const data = await response.json();
+  const res = await req.json();
+  if (!req.ok) throw new Error(`Fallo al crear orden PayPal: ${JSON.stringify(res)}`);
+  return res;
+};
 
-  if (!response.ok) {
-    throw new Error(`Error creando orden PayPal: ${JSON.stringify(data)}`);
-  }
+const capturePaypalOrder = async (idOrden) => {
+  const token = await generateAuthToken();
 
-  return data;
-}
-
-async function capturePaypalOrder(orderId) {
-  const accessToken = await getAccessToken();
-
-  const response = await fetch(`${paypalConfig.baseUrl}/v2/checkout/orders/${orderId}/capture`, {
+  const req = await fetch(`${config.baseUrl}/v2/checkout/orders/${idOrden}/capture`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${accessToken}`
+      Authorization: `Bearer ${token}`
     }
   });
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(`Error capturando orden PayPal: ${JSON.stringify(data)}`);
-  }
-
-  return data;
-}
+  const res = await req.json();
+  if (!req.ok) throw new Error(`Fallo al capturar pago PayPal: ${JSON.stringify(res)}`);
+  return res;
+};
 
 module.exports = {
-  getAccessToken,
+  getAccessToken: generateAuthToken, 
   createPaypalOrder,
   capturePaypalOrder
 };

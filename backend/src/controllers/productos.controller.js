@@ -2,39 +2,34 @@ const db = require('../config/db');
 
 const getProductos = async (req, res) => {
   try {
-    // La tabla 'computadora' tiene columnas: id, nombre, precio, cpu, ram, memoria, gpu, tienda, rutaimg, link
-    const resultados = await Promise.race([
-      db.query('SELECT id, nombre, precio, cpu, ram, memoria, gpu, tienda, rutaimg, link FROM computadora'),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout: BD toma demasiado tiempo')), 5000))
-    ]);
+    const sqlQuery = db.query('SELECT id, nombre, precio, cpu, ram, memoria, gpu, tienda, rutaimg, link FROM computadora');
+    const dbTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error('El tiempo de espera de la BD expiro')), 5000));
 
-    const productos = resultados.rows.map((row) => {
-      // Crear una descripción combinando especificaciones
-      const specs = [row.cpu, row.ram, row.memoria, row.gpu].filter(Boolean).join(' | ');
+    const dbResponse = await Promise.race([sqlQuery, dbTimeout]);
+
+    const listaProductos = dbResponse.rows.map(item => {
+      const caracteristicas = [item.cpu, item.ram, item.memoria, item.gpu].filter(Boolean).join(' | ');
       
       return {
-        id: row.id,
-        name: row.nombre,
-        price: Number(row.precio),
-        imageUrl: row.rutaimg,
-        description: specs || `Tienda: ${row.tienda || 'N/A'}`,
-        category: row.tienda,
-        stock: 10, // Default stock since column is missing
+        id: item.id,
+        name: item.nombre,
+        price: parseFloat(item.precio),
+        imageUrl: item.rutaimg,
+        description: caracteristicas || `Tienda: ${item.tienda || 'N/A'}`,
+        category: item.tienda,
+        stock: 10, 
         inStock: true
       };
     });
 
-    res.json(productos);
-  } catch (error) {
-    console.error('Error en getProductos:', error.message);
-    // Si es timeout de BD, responder con status 503
-    if (error.message.includes('timeout') || error.message.includes('connect')) {
-      return res.status(503).json({ error: 'Base de datos no disponible', detalle: error.message });
+    return res.json(listaProductos);
+  } catch (err) {
+    console.error('Fallo en getProductos:', err.message);
+    if (err.message.includes('espera') || err.message.includes('connect')) {
+      return res.status(503).json({ error: 'Base de datos no disponible', detalle: err.message });
     }
-    res.status(500).json({ error: 'Error al obtener productos!', detalle: error.message });
+    return res.status(500).json({ error: 'Error al obtener productos!', detalle: err.message });
   }
 };
 
-module.exports = {
-  getProductos
-};
+module.exports = { getProductos };

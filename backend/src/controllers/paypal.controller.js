@@ -1,49 +1,32 @@
-const {
-  createPaypalOrder,
-  capturePaypalOrder
-} = require('../services/paypal.service');
+const { createPaypalOrder, capturePaypalOrder } = require('../services/paypal.service');
 
-async function createOrder(req, res) {
+const createOrder = async (req, res) => {
   try {
-    const { items, total } = req.body;
+    const { items: cartItems, total: finalAmount } = req.body;
 
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: 'El carrito está vacío' });
-    }
+    if (!cartItems?.length) return res.status(400).json({ error: 'El carrito está vacío' });
+    if (!finalAmount || parseFloat(finalAmount) <= 0) return res.status(400).json({ error: 'El total es inválido' });
 
-    if (!total || Number(total) <= 0) {
-      return res.status(400).json({ error: 'El total es inválido' });
-    }
+    const paypalResponse = await createPaypalOrder({ items: cartItems, total: finalAmount });
 
-    const order = await createPaypalOrder({ items, total });
-
-    res.status(200).json({
-      id: order.id,
-      status: order.status
-    });
-  } catch (error) {
-    console.error('Error en createOrder:', error.message || error);
-    res.status(500).json({ error: 'No se pudo crear la orden', detalle: error.message || String(error) });
+    return res.status(200).json({ id: paypalResponse.id, status: paypalResponse.status });
+  } catch (err) {
+    console.error('Fallo en createOrder:', err);
+    return res.status(500).json({ error: 'No se pudo crear la orden', detalle: err.message || String(err) });
   }
-}
-
-async function captureOrder(req, res) {
-  try {
-    const { orderId } = req.body;
-
-    if (!orderId) {
-      return res.status(400).json({ error: 'orderId es obligatorio' });
-    }
-
-    const captureData = await capturePaypalOrder(orderId);
-    res.status(200).json(captureData);
-  } catch (error) {
-    console.error('Error en captureOrder:', error.message || error);
-    res.status(500).json({ error: 'No se pudo capturar la orden', detalle: error.message || String(error) });
-  }
-}
-
-module.exports = {
-  createOrder,
-  captureOrder
 };
+
+const captureOrder = async (req, res) => {
+  try {
+    const { orderId: id } = req.body;
+    if (!id) return res.status(400).json({ error: 'orderId es obligatorio' });
+
+    const result = await capturePaypalOrder(id);
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error('Fallo en captureOrder:', err);
+    return res.status(500).json({ error: 'No se pudo capturar la orden', detalle: err.message || String(err) });
+  }
+};
+
+module.exports = { createOrder, captureOrder };
