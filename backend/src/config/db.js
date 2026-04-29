@@ -1,5 +1,9 @@
 const { Pool } = require('pg');
-require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
+const rootEnvPath = path.resolve(__dirname, '../../.env');
+const backendEnvPath = path.resolve(__dirname, '../.env');
+require('dotenv').config({ path: fs.existsSync(rootEnvPath) ? rootEnvPath : backendEnvPath });
 
 const pool = new Pool({
   host: process.env.DB_HOST,
