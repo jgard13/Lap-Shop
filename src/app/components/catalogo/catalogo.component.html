@@ -1,47 +1,11 @@
-<div class="container">
-  <section class="catalog-section">
-    <header class="header">
-      <div class="header-left">
-        <div class="logo">Lap-Compare</div>
-        <div class="subtitle">Catálogo</div>
-      </div>
-
-      <div class="header-right">
-        <button class="btn-login">Iniciar sesión</button>
-
-        <div class="menu-wrapper">
-          <button class="btn-menu" (click)="toggleMenu()">☰</button>
-          @if (menuOpen()) {
-            <div class="dropdown">
-              <a routerLink="/" (click)="toggleMenu()">Catálogo</a>
-              <a routerLink="/buscar" (click)="toggleMenu()">Buscar</a>
-            </div>
-          }
-        </div>
-
-        <button class="btn-cart" (click)="toggleCart()">
-          🛒
-          @if (cartCount() > 0) {
-            <span class="badge">{{ cartCount() }}</span>
-          }
-        </button>
-      </div>
-
-      
-    </header>
-
-    @if (products().length === 0) {
-      <p>Cargando productos (o revisa la ruta del XML).</p>
-    } @else {
-      <section class="grid">
-        @for (p of products(); track p.id) {
-          <app-product-card [product]="p" (add)="agregar($event)"></app-product-card>
-        }
-      </section>
-    }
-  </section>
-
-  <aside class="cart-section" [class.open]="cartVisible()">
-    <app-carrito (close)="toggleCart()"></app-carrito>
-  </aside>
-</div>
+<section class="catalog-section">
+  @if (products().length === 0) {
+    <p>Cargando productos...</p>
+  } @else {
+    <div class="grid">
+      @for (p of products(); track p.id) {
+        <app-product-card [product]="p" (add)="agregar($event)"></app-product-card>
+      }
+    </div>
+  }
+</section>

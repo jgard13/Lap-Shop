@@ -1,0 +1,108 @@
+<div class="register-container">
+  <!-- Encabezado -->
+  <header class="header">
+    <div class="logo" routerLink="/">LAP-COMPARE</div>
+  </header>
+
+  <!-- Cuerpo principal -->
+  <div class="body-content">
+    <div class="form-card">
+      <h2 class="form-title">Crear Cuenta</h2>
+
+      <!-- Mensaje de estado -->
+      <div *ngIf="mensaje" [ngClass]="{'alert': true, 'alert-error': tipoMensaje === 'error', 'alert-exito': tipoMensaje === 'exito'}">
+        {{ mensaje }}
+      </div>
+
+      <!-- Formulario -->
+      <form (ngSubmit)="registrar()" class="form">
+        <!-- Campo Usuario -->
+        <div class="form-group">
+          <label for="usuario" class="form-label">Nombre de usuario</label>
+          <input
+            type="text"
+            id="usuario"
+            class="form-input"
+            placeholder="Elige un nombre de usuario"
+            [(ngModel)]="usuario"
+            name="usuario"
+            required
+          />
+        </div>
+
+        <!-- Campo Correo -->
+        <div class="form-group">
+          <label for="correo" class="form-label">Correo Electrónico</label>
+          <input
+            type="email"
+            id="correo"
+            class="form-input"
+            placeholder="tu@email.com"
+            [(ngModel)]="correo"
+            name="correo"
+            required
+          />
+        </div>
+
+        <!-- Campo Contraseña -->
+        <div class="form-group">
+          <label for="contrasena" class="form-label">Contraseña</label>
+          <input
+            type="password"
+            id="contrasena"
+            class="form-input"
+            placeholder="Crea una contraseña fuerte"
+            [(ngModel)]="contrasena"
+            (input)="validarContrasena()"
+            name="contrasena"
+            required
+          />
+
+          <!-- Requisitos de validación -->
+          <div class="validation-requirements">
+            <div [ngClass]="{'requirement': true, 'active': requisitos.longitud}">
+              <span class="icon">✓</span> Al menos 6 caracteres
+            </div>
+            <div [ngClass]="{'requirement': true, 'active': requisitos.mayuscula}">
+              <span class="icon">✓</span> Una letra mayúscula
+            </div>
+            <div [ngClass]="{'requirement': true, 'active': requisitos.numero}">
+              <span class="icon">✓</span> Un número
+            </div>
+            <div [ngClass]="{'requirement': true, 'active': requisitos.especial}">
+              <span class="icon">✓</span> Un carácter especial (!@#$%^&*)
+            </div>
+          </div>
+        </div>
+
+        <!-- Campo Confirmar Contraseña -->
+        <div class="form-group">
+          <label for="contrasenaConfirmar" class="form-label">Confirmar Contraseña</label>
+          <input
+            type="password"
+            id="contrasenaConfirmar"
+            class="form-input"
+            placeholder="Confirma tu contraseña"
+            [(ngModel)]="contrasenaConfirmar"
+            name="contrasenaConfirmar"
+            required
+          />
+        </div>
+
+        <!-- Botón Registrarse -->
+        <button
+          type="submit"
+          class="btn-register"
+          [disabled]="cargando || !todasLasCondicionesCumplidas"
+        >
+          {{ cargando ? 'Cargando...' : 'Registrarse' }}
+        </button>
+      </form>
+
+      <!-- Enlace de login -->
+      <div class="login-link">
+        <p>¿Ya tienes cuenta? <a routerLink="/login" class="link">Inicia Sesión</a></p>
+      </div>
+    </div>
+  </div>
+</div>

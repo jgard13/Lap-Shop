@@ -1,0 +1,63 @@
+<div class="login-container">
+  <!-- Encabezado -->
+  <header class="header">
+    <div class="logo" routerLink="/">LAP-COMPARE</div>
+  </header>
+
+  <!-- Cuerpo principal -->
+  <div class="body-content">
+    <div class="form-card">
+      <h2 class="form-title">Iniciar Sesión</h2>
+
+      <!-- Mensaje de estado -->
+      <div *ngIf="mensaje" [ngClass]="{'alert': true, 'alert-error': tipoMensaje === 'error', 'alert-exito': tipoMensaje === 'exito'}">
+        {{ mensaje }}
+      </div>
+
+      <!-- Formulario -->
+      <form (ngSubmit)="iniciarSesion()" class="form">
+        <!-- Campo Usuario -->
+        <div class="form-group">
+          <label for="usuario" class="form-label">Nombre de usuario</label>
+          <input
+            type="text"
+            id="usuario"
+            class="form-input"
+            placeholder="Ingresa tu nombre de usuario"
+            [(ngModel)]="usuario"
+            name="usuario"
+            required
+          />
+        </div>
+
+        <!-- Campo Contraseña -->
+        <div class="form-group">
+          <label for="contrasena" class="form-label">Contraseña</label>
+          <input
+            type="password"
+            id="contrasena"
+            class="form-input"
+            placeholder="Ingresa tu contraseña"
+            [(ngModel)]="contrasena"
+            name="contrasena"
+            required
+          />
+        </div>
+
+        <!-- Botón Iniciar Sesión -->
+        <button
+          type="submit"
+          class="btn-login"
+          [disabled]="cargando"
+        >
+          {{ cargando ? 'Cargando...' : 'Iniciar Sesión' }}
+        </button>
+      </form>
+
+      <!-- Enlace de registro -->
+      <div class="signup-link">
+        <p>¿No tienes cuenta? <a routerLink="/registro" class="link">Regístrate</a></p>
+      </div>
+    </div>
+  </div>
+</div>

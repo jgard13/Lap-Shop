@@ -1,0 +1,92 @@
+.card-custom {
+    background: #ffffff;
+    border-radius: 15px;
+    transition: transform 0.2s;
+}
+
+.avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #a881af 0%, #7c5a8a 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.user-name {
+    color: #2d3436;
+    font-weight: 700;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: #2d3436;
+    font-weight: 600;
+}
+
+/* Mini Cards */
+.laptop-card-mini {
+    width: 180px;
+    height: 160px;
+    cursor: pointer;
+}
+
+.laptop-card-mini img {
+    height: 80px;
+    object-fit: contain;
+}
+
+.laptop-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-align: center;
+}
+
+/* Hover Effect */
+.hover-info {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.laptop-card-mini:hover .hover-info {
+    opacity: 1;
+}
+
+/* Scrollbar Customization */
+.overflow-x-auto::-webkit-scrollbar {
+    height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.link-more {
+    cursor: pointer;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.link-more:hover {
+    color: #7c5a8a !important;
+}

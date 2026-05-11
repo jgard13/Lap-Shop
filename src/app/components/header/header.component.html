@@ -1,0 +1,34 @@
+<header class="header">
+  <div class="header-main">
+    <div class="logo" routerLink="/">LAP-COMPARE</div>
+    <nav class="nav-links">
+      <a routerLink="/" class="nav-item">Catálogo</a>
+      <a routerLink="/buscar" class="nav-item">Buscar</a>
+    </nav>
+  </div>
+
+  <div class="header-right">
+    @if (authService.usuarioActual$ | async; as user) {
+      <div class="user-info">
+        <span class="user-link">
+          <span class="username">{{ user.usuario }}</span>
+          <span class="material-icons icon-user">person</span>
+        </span>
+        <button class="btn-logout" (click)="cerrarSesion()" title="Cerrar sesión">
+          <span class="material-icons">logout</span>
+        </button>
+      </div>
+    } @else {
+      <a routerLink="/login" class="btn-login-icon" title="Iniciar sesión">
+        <span class="material-icons">person</span>
+      </a>
+    }
+
+    <button class="btn-cart" (click)="toggleCart()">
+      <span class="material-icons icon-cart">shopping_cart</span>
+      @if (cartCount() > 0) {
+        <span class="badge">{{ cartCount() }}</span>
+      }
+    </button>
+  </div>
+</header>

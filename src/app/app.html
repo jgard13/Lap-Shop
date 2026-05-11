@@ -1,4 +1,12 @@
-<div class="container">
+@if (showHeader()) {
+  <app-header (toggleCartEvent)="onToggleCart()"></app-header>
+}
+
+<main class="main-content">
   <router-outlet></router-outlet>
-</div>
+</main>
+
+<aside class="cart-sidebar" [class.open]="cartVisible()">
+  <app-carrito (close)="onToggleCart()"></app-carrito>
+</aside>
 

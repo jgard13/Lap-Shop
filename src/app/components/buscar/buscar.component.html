@@ -1,9 +1,31 @@
-<section class="buscar">
-  <h2>Buscar</h2>
-  <p>Ingresa el término y presiona Buscar (placeholder).</p>
-
-  <div class="search-row">
-    <input [(ngModel)]="query" placeholder="Buscar dispositivos..." />
-    <button class="btn" (click)="onSearch()">Buscar</button>
+<section class="buscar-container">
+  <div class="search-box">
+    <h2 class="section-title">Encuentra tu Laptop ideal</h2>
+    <div class="search-row">
+      <input 
+        type="text" 
+        [(ngModel)]="query" 
+        (keyup.enter)="onSearch()" 
+        placeholder="Nombre, marca o procesador..." 
+        class="search-input"
+      />
+      <button class="btn-search" (click)="onSearch()">
+        <span class="material-icons">search</span>
+        <span>Buscar</span>
+      </button>
+    </div>
   </div>
+
+  @if (searching()) {
+    <div class="status-msg">Buscando productos...</div>
+  } @else if (results().length > 0) {
+    <div class="results-info">Se encontraron {{ results().length }} dispositivos</div>
+    <div class="grid">
+      @for (p of results(); track p.id) {
+        <app-product-card [product]="p" (add)="agregar($event)"></app-product-card>
+      }
+    </div>
+  } @else if (query && !searching()) {
+    <div class="status-msg">No se encontraron resultados para "{{ query }}"</div>
+  }
 </section>

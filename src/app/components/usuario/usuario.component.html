@@ -1,0 +1,100 @@
+<main class="container py-4 flex-grow-1" *ngIf="usuario">
+    <!-- Card de Perfil -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card card-custom p-3 m-0 shadow-sm border-0"> 
+                <div class="row align-items-center text-center text-md-start flex-column flex-md-row gap-3 gap-md-0"> 
+                    <div class="col-12 col-md-auto d-flex justify-content-center"> 
+                        <div class="avatar m-0">{{ getIniciales() }}</div> 
+                    </div>
+                    <div class="col-12 col-md"> 
+                        <h2 class="user-name mb-1">{{ usuario.usuario }}</h2>
+                        <p class="user-email mb-0 text-muted">{{ usuario.correo }}</p>
+                    </div>
+                    <div class="col-12 col-md-auto"> 
+                        <button (click)="cerrarSesion()" class="btn btn-outline-danger px-4 rounded-pill">
+                            Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección Favoritos -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card card-custom p-3 shadow-sm border-0">
+                <h2 class="section-title mb-3">Favoritos</h2>
+                
+                <div *ngIf="cargandoFavoritos" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+
+                <div *ngIf="!cargandoFavoritos && favoritos.length === 0" class="content-container d-flex align-items-center justify-content-center text-muted py-5 bg-light rounded-3">
+                    Tus laptops favoritas aparecerán aquí.
+                </div>
+
+                <div *ngIf="!cargandoFavoritos && favoritos.length > 0" class="d-flex flex-nowrap overflow-x-auto pb-3 gap-3">
+                    <div *ngFor="let laptop of favoritos" class="laptop-card-mini flex-shrink-0" [routerLink]="['/catalogo']">
+                        <div class="card border-0 shadow-sm h-100 position-relative overflow-hidden">
+                            <div class="p-2 h-100 bg-white d-flex flex-column align-items-center">
+                                <img [src]="getProxyUrl(laptop.imageUrl)" class="img-fluid rounded-3 mb-2" alt="Laptop">
+                                <p class="laptop-title mb-0">{{ laptop.name }}</p>
+                            </div>
+                            <!-- Hover Overlay -->
+                            <div class="hover-info position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 text-white d-flex flex-column justify-content-center align-items-center p-2">
+                                <p class="mb-1 text-center small">{{ laptop.name }}</p>
+                                <p class="fw-bold text-success mb-2">{{ formatPrice(laptop.price) }}</p>
+                                <button class="btn btn-sm btn-primary rounded-pill px-3">Ver Detalles</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-end mt-2" *ngIf="favoritos.length > 5">
+                    <a class="link-more small text-primary text-decoration-none">Ver más ({{ favoritos.length - 5 }} restantes)</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección Vistos Recientemente -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-custom p-3 shadow-sm border-0">
+                <h2 class="section-title mb-1">Vistos Recientemente</h2>
+                <p class="info-legend mb-3 text-muted small">Los datos se conservan por 30 días.</p>
+                
+                <div *ngIf="cargandoVistos" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+
+                <div *ngIf="!cargandoVistos && vistos.length === 0" class="content-container d-flex align-items-center justify-content-center text-muted py-5 bg-light rounded-3">
+                    Tu historial de laptops aparecerá aquí.
+                </div>
+
+                <div *ngIf="!cargandoVistos && vistos.length > 0" class="d-flex flex-nowrap overflow-x-auto pb-3 gap-3">
+                    <div *ngFor="let laptop of vistos" class="laptop-card-mini flex-shrink-0" [routerLink]="['/catalogo']">
+                        <div class="card border-0 shadow-sm h-100 position-relative overflow-hidden">
+                            <div class="p-2 h-100 bg-white d-flex flex-column align-items-center">
+                                <img [src]="getProxyUrl(laptop.imageUrl)" class="img-fluid rounded-3 mb-2" alt="Laptop">
+                                <p class="laptop-title mb-0">{{ laptop.name }}</p>
+                            </div>
+                            <!-- Hover Overlay -->
+                            <div class="hover-info position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 text-white d-flex flex-column justify-content-center align-items-center p-2">
+                                <p class="mb-1 text-center small">{{ laptop.name }}</p>
+                                <p class="fw-bold text-success mb-2">{{ formatPrice(laptop.price) }}</p>
+                                <button class="btn btn-sm btn-primary rounded-pill px-3">Ver Detalles</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

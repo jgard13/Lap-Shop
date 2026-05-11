@@ -1,1 +1,25 @@
-/* You can add global styles to this file, and also import other style files */
+@font-face {
+  font-family: 'Horizon';
+  src: url('assets/fonts/Horizon.woff2') format('woff2'),
+       url('assets/fonts/Horizon.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Configuración global de tipografía */
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #ffffff;
+  color: #333333;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}

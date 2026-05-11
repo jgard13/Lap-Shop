@@ -13,6 +13,18 @@ export class ProductsService {
     return this.http.get<Product[]>('/api/productos');
   }
 
+  buscar(query: string): Observable<Product[]> {
+    return this.http.get<Product[]>(`/api/productos/buscar?q=${query}`);
+  }
+
+  getFavoritos(usuarioId: number): Observable<Product[]> {
+    return this.http.get<Product[]>(`/api/favoritos/${usuarioId}`);
+  }
+
+  getVistos(usuarioId: number): Observable<Product[]> {
+    return this.http.get<Product[]>(`/api/vistos/${usuarioId}`);
+  }
+
   private parseProductsXml(xmlText: string): Product[] {
     const parser = new DOMParser();
     const doc = parser.parseFromString(xmlText, 'application/xml');

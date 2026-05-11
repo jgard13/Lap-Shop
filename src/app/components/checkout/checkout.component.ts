@@ -1,6 +1,5 @@
 import { AfterViewInit, Component, ElementRef, ViewChild, computed, inject } from '@angular/core';
-import { NgIf, NgFor, CurrencyPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { NgIf } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { CarritoService } from '../../Services/carrito.service';
 import { PaypalService } from '../../Services/paypal.service';
@@ -10,7 +9,7 @@ declare const paypal: any;
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [NgIf, NgFor, CurrencyPipe, RouterLink],
+  imports: [NgIf],
   templateUrl: './checkout.component.html'
 })
 export class CheckoutComponent implements AfterViewInit {

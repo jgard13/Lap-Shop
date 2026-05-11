@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getProductos } = require('../controllers/productos.controller');
+const { getProductos, buscarProductos } = require('../controllers/productos.controller');
 const db = require('../config/db');
 
 // Health check para verificar conexión a BD
@@ -15,5 +15,6 @@ router.get('/health', async (req, res) => {
 });
 
 router.get('/productos', getProductos);
+router.get('/productos/buscar', buscarProductos);
 
 module.exports = router;

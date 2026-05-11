@@ -35,6 +35,41 @@ const getProductos = async (req, res) => {
   }
 };
 
+const buscarProductos = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q) return res.json([]);
+
+    const queryStr = `
+      SELECT id, nombre, precio, cpu, ram, memoria, gpu, tienda, rutaimg, link 
+      FROM computadora 
+      WHERE nombre ILIKE $1 OR cpu ILIKE $1 OR tienda ILIKE $1
+    `;
+    
+    const resultados = await db.query(queryStr, [`%${q}%`]);
+
+    const productos = resultados.rows.map((row) => {
+      const specs = [row.cpu, row.ram, row.memoria, row.gpu].filter(Boolean).join(' | ');
+      return {
+        id: row.id,
+        name: row.nombre,
+        price: Number(row.precio),
+        imageUrl: row.rutaimg,
+        description: specs || `Tienda: ${row.tienda || 'N/A'}`,
+        category: row.tienda,
+        stock: 10,
+        inStock: true
+      };
+    });
+
+    res.json(productos);
+  } catch (error) {
+    console.error('Error en buscarProductos:', error.message);
+    res.status(500).json({ error: 'Error al buscar productos!', detalle: error.message });
+  }
+};
+
 module.exports = {
-  getProductos
+  getProductos,
+  buscarProductos
 };
