@@ -11,7 +11,7 @@ export class PaypalService {
     return this.http.post<{ id: string; status: string }>(`${this.apiUrl}/create-order`, payload);
   }
 
-  capturarOrder(orderId: string) {
-    return this.http.post<any>(`${this.apiUrl}/capture-order`, { orderId });
+  capturarOrder(orderId: string, items?: any[]) {
+    return this.http.post<any>(`${this.apiUrl}/capture-order`, { orderId, items });
   }
 }

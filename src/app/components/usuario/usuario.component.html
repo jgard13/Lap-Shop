@@ -1,8 +1,9 @@
 <main class="container py-4 flex-grow-1" *ngIf="usuario">
-    <!-- Card de Perfil -->
+    <!-- Card de Perfil o Formulario de Edición -->
     <div class="row mb-3">
         <div class="col-12">
-            <div class="card card-custom p-3 m-0 shadow-sm border-0"> 
+            <!-- Vista de Perfil Regular -->
+            <div *ngIf="!editando" class="card card-custom p-3 m-0 shadow-sm border-0"> 
                 <div class="row align-items-center text-center text-md-start flex-column flex-md-row gap-3 gap-md-0"> 
                     <div class="col-12 col-md-auto d-flex justify-content-center"> 
                         <div class="avatar m-0">{{ getIniciales() }}</div> 
@@ -11,10 +12,122 @@
                         <h2 class="user-name mb-1">{{ usuario.usuario }}</h2>
                         <p class="user-email mb-0 text-muted">{{ usuario.correo }}</p>
                     </div>
-                    <div class="col-12 col-md-auto"> 
+                    <div class="col-12 col-md-auto d-flex gap-2 justify-content-center"> 
+                        <button (click)="iniciarEdicion()" class="btn btn-outline-primary px-4 rounded-pill">
+                            Editar Perfil
+                        </button>
                         <button (click)="cerrarSesion()" class="btn btn-outline-danger px-4 rounded-pill">
                             Cerrar Sesión
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista de Edición de Perfil (Estilo Premium con validaciones) -->
+            <div *ngIf="editando" class="card card-custom p-4 m-0 shadow-sm border-0 profile-edit-card">
+                <h3 class="mb-3 user-name fs-4">Editar Datos del Perfil</h3>
+                
+                <div *ngIf="mensajeError" class="alert alert-danger rounded-3 p-2 mb-3 small d-flex align-items-center">
+                    <span class="me-2">⚠️</span> {{ mensajeError }}
+                </div>
+                <div *ngIf="mensajeExito" class="alert alert-success rounded-3 p-2 mb-3 small d-flex align-items-center">
+                    <span class="me-2">✓</span> {{ mensajeExito }}
+                </div>
+
+                <form (ngSubmit)="guardarPerfil()">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label text-muted small fw-semibold mb-1">Nombre de Usuario</label>
+                            <input type="text" class="form-control rounded-pill px-3" [(ngModel)]="editUsuario" name="editUsuario" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label text-muted small fw-semibold mb-1">Correo Electrónico</label>
+                            <input type="email" class="form-control rounded-pill px-3" [(ngModel)]="editCorreo" name="editCorreo" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label text-muted small fw-semibold mb-1">Nueva Contraseña (Opcional)</label>
+                            <input type="password" class="form-control rounded-pill px-3" [(ngModel)]="editContrasena" name="editContrasena" placeholder="Dejar vacío si no se cambia">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label text-muted small fw-semibold mb-1">Confirmar Nueva Contraseña</label>
+                            <input type="password" class="form-control rounded-pill px-3" [(ngModel)]="editContrasenaConfirmar" name="editContrasenaConfirmar" placeholder="Confirmar contraseña">
+                        </div>
+                        <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" (click)="cancelarEdicion()" class="btn btn-light px-4 rounded-pill" [disabled]="cargandoGuardar">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill" [disabled]="cargandoGuardar">
+                                <span *ngIf="cargandoGuardar" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección Historial de Pedidos -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card card-custom p-3 shadow-sm border-0">
+                <h2 class="section-title mb-1">Historial de Pedidos</h2>
+                <p class="info-legend mb-3 text-muted small">Registros de tus compras realizadas con PayPal.</p>
+
+                <div *ngIf="cargandoPedidos" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+
+                <div *ngIf="!cargandoPedidos && pedidos.length === 0" class="content-container d-flex align-items-center justify-content-center text-muted py-5 bg-light rounded-3 text-center">
+                    Aún no has realizado compras. ¡Tus pedidos de PayPal aparecerán aquí!
+                </div>
+
+                <div *ngIf="!cargandoPedidos && pedidos.length > 0" class="pedidos-container d-flex flex-column gap-3">
+                    <div *ngFor="let pedido of pedidos" class="card border border-light shadow-sm rounded-3 overflow-hidden bg-white">
+                        <!-- Cabecera del pedido -->
+                        <div class="card-header bg-light d-flex flex-wrap justify-content-between align-items-center py-2 px-3 border-0 gap-2">
+                            <div>
+                                <span class="text-muted small">Fecha:</span> 
+                                <span class="fw-semibold small ms-1 text-dark">{{ pedido.fecha_pedido | date:'dd/MM/yyyy HH:mm' }}</span>
+                            </div>
+                            <div>
+                                <span class="text-muted small">PayPal ID:</span> 
+                                <span class="font-monospace small ms-1 text-primary">{{ pedido.paypal_order_id }}</span>
+                            </div>
+                            <div>
+                                <span class="badge bg-success rounded-pill px-3 py-1 text-uppercase small">{{ pedido.estado }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Items del pedido -->
+                        <div class="card-body p-3">
+                            <div class="d-flex flex-column gap-2">
+                                <div *ngFor="let item of pedido.items" class="d-flex justify-content-between align-items-center border-bottom border-light pb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-light p-2 rounded d-flex align-items-center justify-content-center text-muted" style="width: 40px; height: 40px;">
+                                            💻
+                                        </div>
+                                        <div>
+                                            <p class="mb-0 fw-semibold text-dark small" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                {{ item.nombre }}
+                                            </p>
+                                            <span class="text-muted small">Cantidad: {{ item.cantidad }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fw-bold text-dark">{{ formatPrice(item.precio * item.cantidad) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Total de pedido -->
+                            <div class="d-flex justify-content-end align-items-center mt-3 gap-2">
+                                <span class="text-muted fw-semibold">Total del Pedido:</span>
+                                <span class="fs-5 fw-bold text-success">{{ formatPrice(pedido.total) }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -52,10 +165,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="text-end mt-2" *ngIf="favoritos.length > 5">
-                    <a class="link-more small text-primary text-decoration-none">Ver más ({{ favoritos.length - 5 }} restantes)</a>
                 </div>
             </div>
         </div>

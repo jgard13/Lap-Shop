@@ -7,26 +7,29 @@
 .register-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background-color: #FFFFFF;
 }
 
 /* Encabezado */
 .header {
   background-color: #1a1a1a;
-  padding: 24px 40px;
+  padding: 17px 34px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-bottom: 4px solid #7E57C2;
+  justify-content: space-between;
+  border-top: 4px solid #7E57C2;
+  flex-shrink: 0;
 }
 
 .logo {
   font-family: 'Horizon', sans-serif;
   color: #FFFFFF;
-  font-size: 32px;
+  font-size: 24px;
+  font-weight: 900;
   margin: 0;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   cursor: pointer;
   transition: opacity 0.2s;
 }
@@ -50,9 +53,9 @@
 .form-card {
   background-color: #F5F5F5;
   border-radius: 8px;
-  padding: 40px;
+  padding: 36px 56px;
   width: 100%;
-  max-width: 450px;
+  max-width: 520px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 

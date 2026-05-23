@@ -3,6 +3,7 @@ export interface Usuario {
   usuario: string;
   correo: string;
   contrasena?: string;
+  token?: string; // Token JWT opcional
 }
 
 export interface RespuestaAuth {
@@ -12,6 +13,7 @@ export interface RespuestaAuth {
     id: number;
     usuario: string;
     correo: string;
+    token?: string; // Token JWT retornado por el backend
   };
   error?: string;
 }

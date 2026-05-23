@@ -1,7 +1,6 @@
 import { Component, computed, EventEmitter, Output } from '@angular/core';
 import { CurrencyPipe, NgIf, NgFor } from '@angular/common';
-import { CarritoService } from '../../Services/carrito.service';
-import { Product } from '../../models/product.model';
+import { CarritoService, CartItem } from '../../Services/carrito.service';
 import { Signal } from '@angular/core';
 
 import { CheckoutComponent } from '../checkout/checkout.component';
@@ -14,12 +13,16 @@ import { CheckoutComponent } from '../checkout/checkout.component';
   styleUrls: ['./carrito.component.css'],
 })
 export class CarritoComponent {
-  carrito: Signal<Product[]>;
+  carrito: Signal<CartItem[]>;
   total = computed(() => this.carritoService.total());
   @Output() close = new EventEmitter<void>();
 
   constructor(private carritoService: CarritoService) {
-    this.carrito = this.carritoService.productos;
+    this.carrito = this.carritoService.items;
+  }
+
+  agregar(product: any) {
+    this.carritoService.agregar(product);
   }
 
   quitar(id: number) {
@@ -38,4 +41,3 @@ export class CarritoComponent {
     this.close.emit();
   }
 }
-

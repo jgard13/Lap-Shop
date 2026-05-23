@@ -5,6 +5,7 @@ import { BuscarComponent } from './components/buscar/buscar.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { UsuarioComponent } from './components/usuario/usuario.component';
+import { ProductoDetalleComponent } from './components/producto-detalle/producto-detalle.component';
 
 export const routes: Routes = [
   { path: '', component: CatalogoComponent },
@@ -14,5 +15,7 @@ export const routes: Routes = [
   { path: 'registro', component: RegisterComponent },
   { path: 'usuario', component: UsuarioComponent },
   { path: 'catalogo', component: CatalogoComponent },
+  { path: 'producto/:id', component: ProductoDetalleComponent },
   { path: '**', redirectTo: '' },
 ];
+

@@ -1,14 +1,70 @@
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   font-family: 'Horizon', sans-serif;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 32px;
+  /* 5% larger padding */
+  padding: 17px 34px;
   background: #1a1a1a;
   color: #FFFFFF;
-  border-radius: 12px;
-  margin-bottom: 24px;
+  z-index: 2000;
 }
+
+/* Space between navigation links */
+.nav-item:not(:last-child) {
+  margin-right: 16px; /* aesthetic separator */
+}
+
+/* Hide any custom checkbox visual */
+.custom-checkbox {
+  display: none;
+}
+
+/* Sidebar stays fixed under header */
+.filters-sidebar {
+  top: 72px; /* header height */
+  left: 0;
+  height: calc(100vh - 72px);
+  position: fixed;
+  background: #1a1a1a;
+  color: #ffffff;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  padding: 24px;
+  overflow-y: auto;
+  z-index: 1500;
+}
+
+/* Hide native checkboxes */
+.checkbox-wrapper input[type="checkbox"] {
+  display: none;
+}
+
+/* Label default styling */
+.checkbox-label {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.2s, font-size 0.2s;
+  color: #e5e7eb;
+}
+
+/* Selected state – change text color and slightly increase font size */
+.checkbox-wrapper input[type="checkbox"]:checked + .checkbox-label .label-text {
+  color: #7E57C2;
+  font-size: 1.05em;
+}
+
+/* Ensure label text inherits color when not selected */
+.checkbox-label .label-text {
+  color: inherit;
+}
+
+/* Removed invalid CSS block */
 
 .header-main {
   display: flex;
@@ -26,8 +82,7 @@
 
 .nav-links {
   display: flex;
-  gap: 16px;
-  margin-top: 4px;
+
 }
 
 .nav-item {

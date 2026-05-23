@@ -1,4 +1,4 @@
-<article class="card" [class.added]="added">
+<article class="card" [class.added]="added" (click)="goToDetail()" style="cursor:pointer">
   <img class="img" [src]="product.imageUrl" [alt]="product.name" />
 
   <div class="body">
@@ -14,7 +14,7 @@
       @if (product.inStock) { En stock } @else { Agotado }
     </p>
 
-    <button class="btn" [disabled]="!product.inStock" (click)="onAdd()">
+    <button class="btn" [disabled]="!product.inStock" (click)="onAdd($event)">
       Agregar al carrito
     </button>
   </div>

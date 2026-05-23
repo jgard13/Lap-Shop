@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { Product } from '../../models/product.model';
 
 @Component({
@@ -13,12 +14,16 @@ export class ProductCardComponent {
   @Output() add = new EventEmitter<Product>();
   added = false;
 
-  onAdd() {
-    // marcar feedback visual local y emitir evento
+  private router = inject(Router);
+
+  goToDetail() {
+    this.router.navigate(['/producto', this.product.id]);
+  }
+
+  onAdd(event: Event) {
+    event.stopPropagation(); // evita que el click de la card dispare goToDetail
     this.added = true;
     this.add.emit(this.product);
-
-    // quitar el indicador después de una animación corta
     setTimeout(() => (this.added = false), 800);
   }
 }

@@ -25,6 +25,17 @@ export class ProductsService {
     return this.http.get<Product[]>(`/api/vistos/${usuarioId}`);
   }
 
+  filtrar(etiquetas: string[], precioMin: number, precioMax: number, modo: string): Observable<any> {
+    return this.http.post<any>('/api/productos/filtrar', { etiquetas, precio_min: precioMin, precio_max: precioMax, modo });
+  }
+
+  obtenerFeedbackAsistente(laptops: Product[], etiquetas: string[], precioMin: number, precioMax: number): Observable<{ feedback: string }> {
+    return this.http.post<{ feedback: string }>('/api/productos/feedback', {
+      laptops,
+      userReq: { etiquetas, precio_min: precioMin, precio_max: precioMax }
+    });
+  }
+
   private parseProductsXml(xmlText: string): Product[] {
     const parser = new DOMParser();
     const doc = parser.parseFromString(xmlText, 'application/xml');

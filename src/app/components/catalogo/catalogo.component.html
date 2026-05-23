@@ -1,11 +1,185 @@
-<section class="catalog-section">
-  @if (products().length === 0) {
-    <p>Cargando productos...</p>
-  } @else {
-    <div class="grid">
-      @for (p of products(); track p.id) {
-        <app-product-card [product]="p" (add)="agregar($event)"></app-product-card>
+<div class="catalog-container">
+  <!-- Botón móvil para colapsar filtros -->
+  <div class="mobile-filter-bar">
+    <button class="btn-toggle-filters" (click)="toggleSidebarMobile()">
+      <span class="material-icons">filter_list</span>
+      <span>Filtros {{ selectedCategorias().length ? '(' + selectedCategorias().length + ')' : '' }}</span>
+    </button>
+  </div>
+
+  <div class="catalog-layout">
+    <!-- Barra lateral de Filtros -->
+    <aside class="filters-sidebar" [class.open]="showSidebarMobile()">
+      <div class="sidebar-header">
+        <h2>Filtros</h2>
+        <button class="btn-close-sidebar" (click)="toggleSidebarMobile()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="sidebar-content">
+        <!-- Categorías Checkboxes -->
+        <div class="filter-section">
+          <label class="filter-label">Categorías de Uso</label>
+          <div class="checkbox-group">
+            @for (cat of categorias; track cat) {
+              <div class="checkbox-wrapper" (click)="toggleCategoria(cat)">
+                <span class="label-text" [class.selected]="selectedCategorias().includes(cat)">{{ cat }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Modo de Requisitos Toggle -->
+        <div class="filter-section">
+          <label class="filter-label">Modo de Requisitos</label>
+          <div class="switch-container">
+            <span class="switch-label" [class.active]="modoRequisitos() === 'minimo'">Mínimo</span>
+            <label class="switch-toggle">
+              <input 
+                type="checkbox" 
+                [checked]="modoRequisitos() === 'optimo'" 
+                (change)="toggleModoRequisitos($event)"
+              />
+              <span class="switch-slider"></span>
+            </label>
+            <span class="switch-label" [class.active]="modoRequisitos() === 'optimo'">Óptimo</span>
+          </div>
+        </div>
+
+        <!-- Rango de Precio Dual Slider -->
+        <div class="filter-section">
+          <label class="filter-label">Rango de Presupuesto</label>
+          
+          <div class="dual-slider-container">
+            <div class="slider-track"></div>
+            <div 
+              class="slider-range" 
+              [style.left.%]="getRangePercentageLeft()" 
+              [style.width.%]="getRangePercentageWidth()"
+            ></div>
+            
+            <input 
+              type="range" 
+              class="range-input min-range" 
+              min="4500" 
+              [max]="maxSliderLimit()" 
+              [value]="precioMin()" 
+              (input)="onMinPriceChange($any($event.target).value)"
+            />
+            <input 
+              type="range" 
+              class="range-input max-range" 
+              min="4500" 
+              [max]="maxSliderLimit()" 
+              [value]="precioMax()" 
+              (input)="onMaxPriceChange($any($event.target).value)"
+            />
+          </div>
+
+          <div class="price-displays">
+            <div class="price-badge">
+              <span class="currency">Min: </span>
+              <span class="amount">${{ precioMin() | number }}</span>
+            </div>
+            <div class="price-badge">
+              <span class="currency">Máx: </span>
+              <span class="amount">
+                @if (precioMax() >= maxSliderLimit()) {
+                  Cualquiera
+                } @else {
+                  ${{ precioMax() | number }}
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Overlay móvil -->
+    <div 
+      class="sidebar-overlay" 
+      [class.active]="showSidebarMobile()" 
+      (click)="toggleSidebarMobile()"
+    ></div>
+
+    <!-- Resultados Principales -->
+    <main class="catalog-main">
+      
+      <!-- Mensaje / Alerta de Sistema (Fallback) -->
+      @if (mensajeSistema()) {
+        <div class="system-alert-banner" [class.fallback]="tipoMatch() !== 'Exacta'">
+          <span class="material-icons">info</span>
+          <p class="alert-text">{{ mensajeSistema() }}</p>
+        </div>
       }
-    </div>
-  }
-</section>
+
+      <!-- Sugerencia Especialista Destacada -->
+      @if (sugerenciaEspecialista() && selectedCategorias().length > 0) {
+        <div class="specialist-suggestion-card">
+          <div class="suggestion-glow"></div>
+          <div class="suggestion-badge">
+            <span class="material-icons">verified</span>
+            <span>Sugerencia del Especialista</span>
+          </div>
+          <div class="suggestion-inner">
+            <div class="suggestion-image-wrapper">
+              <img 
+                [src]="sugerenciaEspecialista()?.imageUrl || 'https://placehold.co/200x150?text=Laptop'" 
+                alt="Sugerencia" 
+                class="suggestion-img"
+              />
+            </div>
+            <div class="suggestion-content">
+              <h3 class="suggestion-title">{{ sugerenciaEspecialista()?.name }}</h3>
+              <p class="suggestion-desc">{{ sugerenciaEspecialista()?.description }}</p>
+              <div class="suggestion-action-row">
+                <span class="suggestion-price">{{ sugerenciaEspecialista()?.price | currency:'MXN':'symbol-narrow':'1.0-2' }}</span>
+                <button class="btn-suggestion-cart" (click)="agregar(sugerenciaEspecialista()!)">
+                  <span class="material-icons">shopping_bag</span>
+                  <span>Agregar al Carrito</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Análisis del Asistente (IA) -->
+      @if (llmFeedback() || llmLoading()) {
+        <div class="assistant-feedback-banner">
+          <div class="assistant-badge">
+            <span class="material-icons animate-pulse">psychology</span>
+            <span>Análisis Técnico del Asistente</span>
+          </div>
+          <div class="assistant-content">
+            @if (llmLoading()) {
+              <div class="assistant-loader">
+                <span class="loader-spinner"></span>
+                <span class="loader-text">Analizando especificaciones de procesador, memoria RAM, SSD y tarjeta gráfica...</span>
+              </div>
+            } @else {
+              <p class="assistant-text">{{ llmFeedback() }}</p>
+            }
+          </div>
+        </div>
+      }
+
+
+      @if (products().length === 0) {
+        <div class="no-results-state">
+          <span class="material-icons">search_off</span>
+          <h3>No se encontraron laptops</h3>
+          <p>Prueba ampliando tu presupuesto o modificando los filtros seleccionados.</p>
+        </div>
+      } @else {
+        <div class="products-grid">
+          @for (p of products(); track p.id) {
+            <app-product-card [product]="p" (add)="agregar($event)"></app-product-card>
+          }
+        </div>
+      }
+    </main>
+  </div>
+</div>

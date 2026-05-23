@@ -4,33 +4,44 @@
     <button class="close" (click)="onClose()">✕</button>
   </div>
 
-  <div *ngIf="carrito().length === 0">
+  <div *ngIf="carrito().length === 0" class="cart-empty">
+    <span class="empty-icon">🛒</span>
     <p class="empty">Tu carrito está vacío.</p>
   </div>
 
   <div *ngIf="carrito().length > 0">
     <ul class="list">
-      <li class="item" *ngFor="let producto of carrito()">
-        <span class="line">
-          {{ producto.name }} - {{ producto.price | currency:'MXN' }}
-        </span>
+      <li class="item" *ngFor="let item of carrito()">
+        <!-- Badge de cantidad -->
+        <div class="qty-badge">{{ item.quantity }}</div>
 
-        <button class="btn danger" (click)="quitar(producto.id)">
-          Quitar
-        </button>
+        <!-- Info del producto -->
+        <div class="item-info">
+          <span class="item-name">{{ item.product.name }}</span>
+          <span class="item-subtotal">{{ (item.product.price * item.quantity) | currency:'MXN':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+
+        <!-- Controles -->
+        <div class="item-controls">
+          <button class="ctrl-btn add" (click)="agregar(item.product)" title="Agregar uno más">+</button>
+          <button class="ctrl-btn remove" (click)="quitar(item.product.id)" title="Quitar uno">−</button>
+        </div>
       </li>
     </ul>
 
-    <div class="total">
-      Total: {{ total() | currency:'MXN' }}
-    </div>
+    <div class="cart-footer">
+      <div class="total-row">
+        <span>Total</span>
+        <span class="total-amount">{{ total() | currency:'MXN':'symbol-narrow':'1.0-0' }}</span>
+      </div>
 
-    <div class="actions">
-      <button class="btn" (click)="vaciar()">Vaciar carrito</button>
-    </div>
+      <div class="actions">
+        <button class="btn-vaciar" (click)="vaciar()">Vaciar carrito</button>
+      </div>
 
-    <div class="paypal-container" style="margin-top: 20px;">
-      <app-checkout></app-checkout>
+      <div class="paypal-container">
+        <app-checkout></app-checkout>
+      </div>
     </div>
   </div>
 </section>

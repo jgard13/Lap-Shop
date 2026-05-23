@@ -18,7 +18,7 @@ export class CheckoutComponent implements AfterViewInit {
   private carritoService = inject(CarritoService);
   private paypalService = inject(PaypalService);
 
-  carrito = this.carritoService.productos;
+  carrito = this.carritoService.items;
   total = computed(() => this.carritoService.total());
 
   mensaje = '';
@@ -55,7 +55,7 @@ export class CheckoutComponent implements AfterViewInit {
 
       onApprove: async (data: any) => {
         try {
-          const capture = await firstValueFrom(this.paypalService.capturarOrder(data.orderID));
+          const capture = await firstValueFrom(this.paypalService.capturarOrder(data.orderID, this.carrito()));
           console.log('Pago capturado:', capture);
           
           // Generar recibo automáticamente después del pago exitoso

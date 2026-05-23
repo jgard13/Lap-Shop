@@ -1,0 +1,80 @@
+<div class="detalle-wrapper">
+
+  <!-- Botón volver -->
+  <div class="back-bar">
+    <button class="btn-volver" (click)="volverAlCatalogo()">
+      <span class="material-icons">arrow_back</span>
+      Volver al Catálogo
+    </button>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="loader-spinner"></span>
+      <p>Cargando producto...</p>
+    </div>
+  }
+
+  <!-- Not found -->
+  @if (!loading() && !product()) {
+    <div class="not-found-state">
+      <span class="material-icons">search_off</span>
+      <h2>Producto no encontrado</h2>
+      <p>El producto que buscas ya no está disponible.</p>
+      <button class="btn-volver" (click)="volverAlCatalogo()">Ir al Catálogo</button>
+    </div>
+  }
+
+  <!-- Detalle completo -->
+  @if (!loading() && product(); as p) {
+    <div class="detalle-grid">
+
+      <!-- Columna 1: Imagen -->
+      <div class="col-imagen">
+        <div class="product-img-card">
+          <img [src]="p.imageUrl || 'https://placehold.co/400x300?text=Laptop'"
+               [alt]="p.name"
+               class="product-img" />
+          <div class="fav-icon">
+             <span class="material-icons">favorite_border</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna 2: Info principal -->
+      <div class="col-info">
+        <h1 class="product-name">{{ p.name }}</h1>
+        <p class="product-price">{{ p.price | currency:'MXN':'symbol-narrow':'1.0-2' }}</p>
+
+        <!-- Botones -->
+        <div class="action-buttons">
+          <button class="btn-compare" (click)="agregarAlCarrito(p)">
+            Agregar al Carrito {{ added() ? '✓' : '+' }}
+          </button>
+          <a href="#" class="btn-buy">Ir al sitio de compra</a>
+        </div>
+
+      </div>
+
+      <!-- Columna 3: Gráfica de radar / Especificaciones -->
+      <div class="col-specs d-flex flex-column align-items-center">
+        <div class="radar-chart-container mb-3 shadow-sm">
+          <canvas id="radarChart"></canvas>
+        </div>
+        
+        <div id="contenedorEspecificaciones" style="width: 100%;">
+          @if (hasSpecs(p)) {
+            <div style="font-size: 14px; color: #333;">
+              @for (spec of getSpecs(p); track spec.key) {
+                <div style="margin-bottom: 6px;"><strong>{{ spec.key }}:</strong> {{ spec.value }}</div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+    </div><!-- /detalle-grid -->
+  }
+
+</div>

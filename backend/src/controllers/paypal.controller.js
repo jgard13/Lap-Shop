@@ -1,3 +1,5 @@
+const jwt = require('jsonwebtoken');
+const UsuarioService = require('../services/usuario.service');
 const {
   createPaypalOrder,
   capturePaypalOrder
@@ -29,13 +31,54 @@ async function createOrder(req, res) {
 
 async function captureOrder(req, res) {
   try {
-    const { orderId } = req.body;
+    const { orderId, items } = req.body;
 
     if (!orderId) {
       return res.status(400).json({ error: 'orderId es obligatorio' });
     }
 
     const captureData = await capturePaypalOrder(orderId);
+
+    // Intentar extraer el ID del usuario si está autenticado (JWT opcional)
+    let userId = null;
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+      const parts = authHeader.split(' ');
+      if (parts.length === 2 && parts[0] === 'Bearer') {
+        try {
+          const decoded = jwt.verify(parts[1], process.env.JWT_SECRET);
+          userId = decoded.id;
+        } catch (jwtError) {
+          console.warn('Token JWT inválido o expirado en captura de PayPal, guardando como invitado:', jwtError.message);
+        }
+      }
+    }
+
+    // Si el usuario está autenticado, guardar la orden en la base de datos
+    if (userId && captureData.status === 'COMPLETED') {
+      try {
+        const total = captureData.purchase_units[0].payments.captures[0].amount.value || captureData.purchase_units[0].amount.value;
+        
+        // Usar los items de req.body (enviados desde el carrito del frontend) o en su defecto los de PayPal
+        let orderItems = items;
+        if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
+          const paypalItems = captureData.purchase_units[0].items || [];
+          orderItems = paypalItems.map(pi => ({
+            id: null, // No tenemos el ID local si viene directo de PayPal
+            name: pi.name,
+            price: pi.unit_amount.value,
+            cantidad: Number(pi.quantity || 1)
+          }));
+        }
+
+        // Guardar pedido en PostgreSQL
+        await UsuarioService.crearPedido(userId, orderId, total, orderItems);
+        console.log(`✓ Pedido ${orderId} registrado exitosamente para el usuario ID ${userId}`);
+      } catch (dbError) {
+        console.error('Error al guardar el pedido en la base de datos:', dbError.message || dbError);
+      }
+    }
+
     res.status(200).json(captureData);
   } catch (error) {
     console.error('Error en captureOrder:', error.message || error);

@@ -1,117 +1,124 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Product } from '../models/product.model';
 
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CarritoService {
   // Lista reactiva del carrito
-  private productosSignal = signal<Product[]>([]);
+  private itemsSignal = signal<CartItem[]>([]);
 
   // Exponer como readonly
-  productos = this.productosSignal.asReadonly();
+  items = this.itemsSignal.asReadonly();
 
-  // Señal computada con la cantidad de productos
-  cantidad = computed(() => this.productosSignal().length);
+  // Señal computada con la cantidad de productos total
+  cantidad = computed(() => this.itemsSignal().reduce((acc, item) => acc + item.quantity, 0));
 
   agregar(producto: Product) {
-    this.productosSignal.update(lista => [...lista, producto]);
+    this.itemsSignal.update(lista => {
+      const existing = lista.find(item => item.product.id === producto.id);
+      if (existing) {
+        return lista.map(item =>
+          item.product.id === producto.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      } else {
+        return [...lista, { product: producto, quantity: 1 }];
+      }
+    });
   }
 
   quitar(id: number) {
-    // Quitar solo una unidad del producto con `id`.
-    this.productosSignal.update(lista => {
-      const idx = lista.findIndex(p => p.id === id);
-      if (idx === -1) return lista;
-      // crear nueva lista con el elemento en idx removido
-      return [...lista.slice(0, idx), ...lista.slice(idx + 1)];
+    // Quitar solo una unidad del producto con `id`. Si es 1, eliminarlo.
+    this.itemsSignal.update(lista => {
+      const existing = lista.find(item => item.product.id === id);
+      if (!existing) return lista;
+
+      if (existing.quantity > 1) {
+        return lista.map(item =>
+          item.product.id === id
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        );
+      } else {
+        return lista.filter(item => item.product.id !== id);
+      }
     });
   }
 
   vaciar() {
-    this.productosSignal.set([]);
+    this.itemsSignal.set([]);
   }
 
   total(): number {
-    return this.productosSignal().reduce((acc, p) => acc + p.price, 0);
+    return this.itemsSignal().reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
   }
 
   exportarXML() {
-    const productos = this.productosSignal();
+    const items = this.itemsSignal();
 
-    if (!productos || productos.length === 0) {
+    if (!items || items.length === 0) {
       alert('El carrito está vacío.');
       return;
     }
 
-    const subtotal = productos.reduce((acc, p) => acc + (p.price ?? 0), 0);
+    const subtotal = items.reduce((acc, item) => acc + ((item.product.price ?? 0) * item.quantity), 0);
     const impuestoTasa = 0.16; // IVA 16%
     const impuestos = +(subtotal * impuestoTasa);
     const total = +(subtotal + impuestos);
 
     const fmt = (n: number) => n.toFixed(2);
-
     const fecha = new Date().toISOString();
 
-    // Comprobante CFDI 4.0 (skeleton). NOTA: Este XML es una estructura básica y no está sellado ni timbrado.
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += `<cfdi:Comprobante Version="4.0" Fecha="${fecha}" Sello="" FormaPago="01" NoCertificado="" Certificado="" SubTotal="${fmt(subtotal)}" Moneda="MXN" Total="${fmt(total)}" TipoDeComprobante="I" LugarExpedicion="00000" xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd">\n`;
-
-    // Emisor (placeholder values)
     xml += `  <cfdi:Emisor Rfc="AAA010101AAA" Nombre="Mi Empresa SA de CV" RegimenFiscal="612"/>\n`;
-
-    // Receptor (placeholder values)
     xml += `  <cfdi:Receptor Rfc="XAXX010101000" Nombre="Publico en General" UsoCFDI="G03"/>\n`;
-
-    // Conceptos
     xml += `  <cfdi:Conceptos>\n`;
-    for (const p of productos) {
-      const cantidad = 1;
-      const valorUnitario = p.price ?? 0;
+    for (const item of items) {
+      const cantidad = item.quantity;
+      const valorUnitario = item.product.price ?? 0;
       const importe = +(cantidad * valorUnitario);
-      const descripcion = this.escapeXml(p.name + (p.description ? ' - ' + p.description : ''));
-
-      // Claves genéricas: ClaveProdServ y ClaveUnidad pueden ajustarse según catálogo SAT
-      xml += `    <cfdi:Concepto ClaveProdServ="43211506" NoIdentificacion="${p.id}" Cantidad="${cantidad}" ClaveUnidad="H87" Unidad="pieza" Descripcion="${descripcion}" ValorUnitario="${fmt(valorUnitario)}" Importe="${fmt(importe)}"/>\n`;
+      const descripcion = this.escapeXml(item.product.name + (item.product.description ? ' - ' + item.product.description : ''));
+      xml += `    <cfdi:Concepto ClaveProdServ="43211506" NoIdentificacion="${item.product.id}" Cantidad="${cantidad}" ClaveUnidad="H87" Unidad="pieza" Descripcion="${descripcion}" ValorUnitario="${fmt(valorUnitario)}" Importe="${fmt(importe)}"/>\n`;
     }
     xml += `  </cfdi:Conceptos>\n`;
-
-    // Impuestos (traslados)
     xml += `  <cfdi:Impuestos TotalImpuestosTrasladados="${fmt(impuestos)}">\n`;
     xml += `    <cfdi:Traslados>\n`;
     xml += `      <cfdi:Traslado Impuesto="002" TipoFactor="Tasa" TasaOCuota="${impuestoTasa.toFixed(6)}" Importe="${fmt(impuestos)}"/>\n`;
     xml += `    </cfdi:Traslados>\n`;
     xml += `  </cfdi:Impuestos>\n`;
-
     xml += `</cfdi:Comprobante>`;
 
     const blob = new Blob([xml], { type: 'application/xml' });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement('a');
     a.href = url;
     a.download = 'cfdi_4.0.xml';
     a.click();
-
     URL.revokeObjectURL(url);
   }
 
   generarReciboPago(paypalOrderId: string) {
-    const productos = this.productosSignal();
+    const items = this.itemsSignal();
 
-    if (!productos || productos.length === 0) {
+    if (!items || items.length === 0) {
       console.warn('El carrito está vacío.');
       return;
     }
 
-    const subtotal = productos.reduce((acc, p) => acc + (p.price ?? 0), 0);
+    const subtotal = items.reduce((acc, item) => acc + ((item.product.price ?? 0) * item.quantity), 0);
     const impuestoTasa = 0.16; // IVA 16%
     const impuestos = +(subtotal * impuestoTasa);
     const total = +(subtotal + impuestos);
 
     const fmt = (n: number) => n.toFixed(2);
-
     const fecha = new Date().toISOString();
 
-    // Recibo con información de PayPal (formato XML simplificado)
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += `<Recibo Fecha="${fecha}" OrdenPayPal="${paypalOrderId}" Moneda="MXN">\n`;
     xml += `  <Resumen>\n`;
@@ -121,14 +128,14 @@ export class CarritoService {
     xml += `  </Resumen>\n`;
     xml += `  <Detalles>\n`;
 
-    for (const p of productos) {
-      const cantidad = 1;
-      const valorUnitario = p.price ?? 0;
+    for (const item of items) {
+      const cantidad = item.quantity;
+      const valorUnitario = item.product.price ?? 0;
       const importe = +(cantidad * valorUnitario);
-      const descripcion = this.escapeXml(p.name + (p.description ? ' - ' + p.description : ''));
+      const descripcion = this.escapeXml(item.product.name + (item.product.description ? ' - ' + item.product.description : ''));
 
       xml += `    <Producto>\n`;
-      xml += `      <Id>${p.id}</Id>\n`;
+      xml += `      <Id>${item.product.id}</Id>\n`;
       xml += `      <Nombre>${descripcion}</Nombre>\n`;
       xml += `      <Cantidad>${cantidad}</Cantidad>\n`;
       xml += `      <Precio>${fmt(valorUnitario)}</Precio>\n`;
@@ -145,12 +152,10 @@ export class CarritoService {
 
     const blob = new Blob([xml], { type: 'application/xml' });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement('a');
     a.href = url;
     a.download = `recibo_${paypalOrderId}.xml`;
     a.click();
-
     URL.revokeObjectURL(url);
   }
 
