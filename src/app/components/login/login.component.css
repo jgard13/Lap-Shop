@@ -10,17 +10,25 @@
   height: 100vh;
   overflow: hidden;
   background-color: #FFFFFF;
+  padding-top: 72px; /* Espacio para el header fijo */
+  box-sizing: border-box;
 }
 
 /* Encabezado */
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   background-color: #1a1a1a;
   padding: 17px 34px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 4px solid #7E57C2;
+  border-bottom: 4px solid #7E57C2;
   flex-shrink: 0;
+  z-index: 2000;
+  box-sizing: border-box;
 }
 
 .logo {
@@ -209,3 +217,71 @@
     padding: 15px;
   }
 }
+
+/* Recuperación de contraseña */
+.forgot-link-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.forgot-link {
+  font-size: 14px;
+  color: #A076F9;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.forgot-link:hover {
+  color: #8860D4;
+  text-decoration: underline;
+}
+
+.form-subtitle {
+  font-size: 14px;
+  color: #666666;
+  text-align: center;
+  margin-top: -20px;
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+.btn-back {
+  background-color: transparent;
+  color: #666666;
+  font-size: 14px;
+  padding: 10px 20px;
+  border: 1px solid #CCCCCC;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 5px;
+  text-align: center;
+}
+
+.btn-back:hover:not(:disabled) {
+  background-color: #EEEEEE;
+  color: #333333;
+}
+
+.btn-back:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.code-input {
+  text-align: center;
+  font-size: 24px;
+  letter-spacing: 8px;
+  font-weight: bold;
+}
+

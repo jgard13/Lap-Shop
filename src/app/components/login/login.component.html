@@ -7,57 +7,152 @@
   <!-- Cuerpo principal -->
   <div class="body-content">
     <div class="form-card">
-      <h2 class="form-title">Iniciar Sesión</h2>
-
       <!-- Mensaje de estado -->
       <div *ngIf="mensaje" [ngClass]="{'alert': true, 'alert-error': tipoMensaje === 'error', 'alert-exito': tipoMensaje === 'exito'}">
         {{ mensaje }}
       </div>
 
-      <!-- Formulario -->
-      <form (ngSubmit)="iniciarSesion()" class="form">
-        <!-- Campo Usuario -->
-        <div class="form-group">
-          <label for="usuario" class="form-label">Nombre de usuario</label>
-          <input
-            type="text"
-            id="usuario"
-            class="form-input"
-            placeholder="Ingresa tu nombre de usuario"
-            [(ngModel)]="usuario"
-            name="usuario"
-            required
-          />
+      <!-- VISTA LOGIN -->
+      <ng-container *ngIf="vistaActual === 'login'">
+        <h2 class="form-title">Iniciar Sesión</h2>
+        <form (ngSubmit)="iniciarSesion()" class="form">
+          <!-- Campo Usuario -->
+          <div class="form-group">
+            <label for="usuario" class="form-label">Nombre de usuario o Correo</label>
+            <input
+              type="text"
+              id="usuario"
+              class="form-input"
+              placeholder="Ingresa tu nombre de usuario o correo"
+              [(ngModel)]="usuario"
+              name="usuario"
+              required
+            />
+          </div>
+
+          <!-- Campo Contraseña -->
+          <div class="form-group">
+            <label for="contrasena" class="form-label">Contraseña</label>
+            <input
+              type="password"
+              id="contrasena"
+              class="form-input"
+              placeholder="Ingresa tu contraseña"
+              [(ngModel)]="contrasena"
+              name="contrasena"
+              required
+            />
+            <div class="forgot-link-container">
+              <a (click)="cambiarVista('solicitar')" class="forgot-link">¿Olvidaste tu contraseña?</a>
+            </div>
+          </div>
+
+          <!-- Botón Iniciar Sesión -->
+          <button
+            type="submit"
+            class="btn-login"
+            [disabled]="cargando"
+          >
+            {{ cargando ? 'Cargando...' : 'Iniciar Sesión' }}
+          </button>
+        </form>
+
+        <!-- Enlace de registro -->
+        <div class="signup-link">
+          <p>¿No tienes cuenta? <a routerLink="/registro" class="link">Regístrate</a></p>
         </div>
+      </ng-container>
 
-        <!-- Campo Contraseña -->
-        <div class="form-group">
-          <label for="contrasena" class="form-label">Contraseña</label>
-          <input
-            type="password"
-            id="contrasena"
-            class="form-input"
-            placeholder="Ingresa tu contraseña"
-            [(ngModel)]="contrasena"
-            name="contrasena"
-            required
-          />
-        </div>
+      <!-- VISTA SOLICITAR CÓDIGO -->
+      <ng-container *ngIf="vistaActual === 'solicitar'">
+        <h2 class="form-title">Recuperar Contraseña</h2>
+        <p class="form-subtitle">Introduce tu correo electrónico registrado y te enviaremos un código de verificación para restablecer tu contraseña.</p>
+        <form (ngSubmit)="solicitarCodigo()" class="form">
+          <!-- Campo Correo -->
+          <div class="form-group">
+            <label for="correoRestablecer" class="form-label">Correo electrónico</label>
+            <input
+              type="email"
+              id="correoRestablecer"
+              class="form-input"
+              placeholder="ejemplo@correo.com"
+              [(ngModel)]="correoRestablecer"
+              name="correoRestablecer"
+              required
+            />
+          </div>
 
-        <!-- Botón Iniciar Sesión -->
-        <button
-          type="submit"
-          class="btn-login"
-          [disabled]="cargando"
-        >
-          {{ cargando ? 'Cargando...' : 'Iniciar Sesión' }}
-        </button>
-      </form>
+          <button
+            type="submit"
+            class="btn-login"
+            [disabled]="cargando"
+          >
+            {{ cargando ? 'Enviando...' : 'Enviar Código' }}
+          </button>
 
-      <!-- Enlace de registro -->
-      <div class="signup-link">
-        <p>¿No tienes cuenta? <a routerLink="/registro" class="link">Regístrate</a></p>
-      </div>
+          <button
+            type="button"
+            class="btn-back"
+            (click)="cambiarVista('login')"
+            [disabled]="cargando"
+          >
+            Volver al inicio de sesión
+          </button>
+        </form>
+      </ng-container>
+
+      <!-- VISTA RESTABLECER CONTRASEÑA -->
+      <ng-container *ngIf="vistaActual === 'restablecer'">
+        <h2 class="form-title">Nueva Contraseña</h2>
+        <p class="form-subtitle">Ingresa el código de 6 dígitos que enviamos a tu correo y tu nueva contraseña.</p>
+        <form (ngSubmit)="restablecerContrasena()" class="form">
+          <!-- Campo Código -->
+          <div class="form-group">
+            <label for="codigoRestablecer" class="form-label">Código de Verificación</label>
+            <input
+              type="text"
+              id="codigoRestablecer"
+              class="form-input code-input"
+              placeholder="123456"
+              maxLength="6"
+              [(ngModel)]="codigoRestablecer"
+              name="codigoRestablecer"
+              required
+            />
+          </div>
+
+          <!-- Campo Nueva Contraseña -->
+          <div class="form-group">
+            <label for="nuevaContrasena" class="form-label">Nueva Contraseña</label>
+            <input
+              type="password"
+              id="nuevaContrasena"
+              class="form-input"
+              placeholder="Mínimo 6 caracteres"
+              [(ngModel)]="nuevaContrasena"
+              name="nuevaContrasena"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="btn-login"
+            [disabled]="cargando"
+          >
+            {{ cargando ? 'Restableciendo...' : 'Restablecer Contraseña' }}
+          </button>
+
+          <button
+            type="button"
+            class="btn-back"
+            (click)="cambiarVista('solicitar')"
+            [disabled]="cargando"
+          >
+            Solicitar otro código
+          </button>
+        </form>
+      </ng-container>
     </div>
   </div>
 </div>

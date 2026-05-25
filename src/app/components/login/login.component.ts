@@ -18,6 +18,12 @@ export class LoginComponent {
   mensaje: string = '';
   tipoMensaje: 'error' | 'exito' = 'error';
 
+  // Propiedades para recuperar contraseña
+  vistaActual: 'login' | 'solicitar' | 'restablecer' = 'login';
+  correoRestablecer: string = '';
+  codigoRestablecer: string = '';
+  nuevaContrasena: string = '';
+
   constructor(
     private authService: AuthService,
     private router: Router
@@ -50,6 +56,102 @@ export class LoginComponent {
         console.error('Error:', error);
         this.mostrarMensaje(
           error.error?.message || 'Error al conectar con el servidor',
+          'error'
+        );
+        this.cargando = false;
+      }
+    });
+  }
+
+  cambiarVista(vista: 'login' | 'solicitar' | 'restablecer'): void {
+    this.vistaActual = vista;
+    this.mensaje = '';
+    // Limpiar campos según la vista
+    if (vista === 'solicitar') {
+      this.correoRestablecer = '';
+    } else if (vista === 'restablecer') {
+      this.codigoRestablecer = '';
+      this.nuevaContrasena = '';
+    }
+  }
+
+  solicitarCodigo(): void {
+    if (!this.correoRestablecer) {
+      this.mostrarMensaje('Por favor ingresa tu correo electrónico', 'error');
+      return;
+    }
+
+    const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!regexCorreo.test(this.correoRestablecer)) {
+      this.mostrarMensaje('Formato de correo electrónico inválido', 'error');
+      return;
+    }
+
+    this.cargando = true;
+    this.mensaje = '';
+
+    this.authService.solicitarRestablecimiento(this.correoRestablecer).subscribe({
+      next: (respuesta) => {
+        if (respuesta.success) {
+          this.mostrarMensaje('Código enviado con éxito. Revisa tu correo.', 'exito');
+          setTimeout(() => {
+            this.cambiarVista('restablecer');
+          }, 1500);
+        } else {
+          this.mostrarMensaje(respuesta.message || 'Error al solicitar el código', 'error');
+        }
+        this.cargando = false;
+      },
+      error: (error) => {
+        console.error('Error:', error);
+        this.mostrarMensaje(
+          error.error?.message || 'Error al enviar el código de verificación',
+          'error'
+        );
+        this.cargando = false;
+      }
+    });
+  }
+
+  restablecerContrasena(): void {
+    if (!this.correoRestablecer || !this.codigoRestablecer || !this.nuevaContrasena) {
+      this.mostrarMensaje('Por favor completa todos los campos', 'error');
+      return;
+    }
+
+    if (this.codigoRestablecer.length !== 6) {
+      this.mostrarMensaje('El código debe ser de 6 dígitos', 'error');
+      return;
+    }
+
+    if (this.nuevaContrasena.length < 6) {
+      this.mostrarMensaje('La nueva contraseña debe tener al menos 6 caracteres', 'error');
+      return;
+    }
+
+    this.cargando = true;
+    this.mensaje = '';
+
+    this.authService.restablecerContrasena(
+      this.correoRestablecer,
+      this.codigoRestablecer,
+      this.nuevaContrasena
+    ).subscribe({
+      next: (respuesta) => {
+        if (respuesta.success) {
+          this.mostrarMensaje('¡Contraseña restablecida correctamente!', 'exito');
+          setTimeout(() => {
+            this.cambiarVista('login');
+          }, 1500);
+        } else {
+          this.mostrarMensaje(respuesta.message || 'Error al restablecer la contraseña', 'error');
+        }
+        this.cargando = false;
+      },
+      error: (error) => {
+        console.error('Error:', error);
+        this.mostrarMensaje(
+          error.error?.message || 'Error al restablecer la contraseña',
           'error'
         );
         this.cargando = false;
