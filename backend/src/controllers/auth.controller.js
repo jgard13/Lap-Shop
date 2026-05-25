@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const UsuarioService = require('../services/usuario.service');
+const EmailService = require('../services/email.service');
 
 class AuthController {
   // Registrar nuevo usuario
@@ -113,11 +114,12 @@ class AuthController {
       }
 
       // Generar JWT
-      // Incluimos id, usuario y correo en el payload del token
+      // Incluimos id, usuario, correo y rol en el payload del token
       const payload = {
         id: user.id,
         usuario: user.usuario,
-        correo: user.correo
+        correo: user.correo,
+        rol: user.rol
       };
 
       const token = jwt.sign(payload, process.env.JWT_SECRET, {
@@ -135,6 +137,7 @@ class AuthController {
           id: user.id,
           usuario: user.usuario,
           correo: user.correo,
+          rol: user.rol,
           token
         }
       });
@@ -143,6 +146,124 @@ class AuthController {
       res.status(500).json({
         success: false,
         message: 'Error al iniciar sesión',
+        error: error.message
+      });
+    }
+  }
+
+  // Solicitar restablecimiento de contraseña (enviar código)
+  static async solicitarRestablecimiento(req, res) {
+    try {
+      const { correo } = req.body;
+
+      if (!correo) {
+        return res.status(400).json({
+          success: false,
+          message: 'El correo electrónico es requerido'
+        });
+      }
+
+      // Verificar si el correo existe
+      const correoExiste = await UsuarioService.correoExiste(correo);
+      if (!correoExiste) {
+        // Por seguridad, no decimos si el correo existe o no, o sí?
+        // En aplicaciones típicas a veces se prefiere responder genéricamente.
+        // Pero para esta aplicación, demos feedback directo.
+        return res.status(404).json({
+          success: false,
+          message: 'El correo electrónico no está registrado'
+        });
+      }
+
+      // Generar código aleatorio de 6 dígitos
+      const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Expiración en 15 minutos
+      const expiracion = new Date();
+      expiracion.setMinutes(expiracion.getMinutes() + 15);
+
+      // Guardar en la base de datos
+      await UsuarioService.guardarCodigoRestablecimiento(correo, codigo, expiracion);
+
+      // Enviar por correo electrónico
+      await EmailService.enviarCodigoVerificacion(correo, codigo);
+
+      res.status(200).json({
+        success: true,
+        message: 'Código de verificación enviado con éxito al correo'
+      });
+    } catch (error) {
+      console.error('Error al solicitar restablecimiento de contraseña:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al procesar la solicitud',
+        error: error.message
+      });
+    }
+  }
+
+  // Restablecer contraseña usando el código
+  static async restablecerContrasena(req, res) {
+    try {
+      const { correo, codigo, nuevaContrasena } = req.body;
+
+      if (!correo || !codigo || !nuevaContrasena) {
+        return res.status(400).json({
+          success: false,
+          message: 'Todos los campos son requeridos'
+        });
+      }
+
+      if (nuevaContrasena.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: 'La nueva contraseña debe tener al menos 6 caracteres'
+        });
+      }
+
+      // Obtener el código guardado
+      const registro = await UsuarioService.obtenerCodigoRestablecimiento(correo);
+      if (!registro) {
+        return res.status(404).json({
+          success: false,
+          message: 'No se encontró solicitud de restablecimiento para este correo'
+        });
+      }
+
+      // Validar código
+      if (registro.codigo_restablecimiento !== codigo) {
+        return res.status(400).json({
+          success: false,
+          message: 'El código de verificación es incorrecto'
+        });
+      }
+
+      // Validar expiración
+      const ahora = new Date();
+      const expiracion = new Date(registro.codigo_expiracion);
+      if (ahora > expiracion) {
+        return res.status(400).json({
+          success: false,
+          message: 'El código de verificación ha expirado'
+        });
+      }
+
+      // Hashear la nueva contraseña
+      const salt = await bcrypt.genSalt(10);
+      const contrasenaHasheada = await bcrypt.hash(nuevaContrasena, salt);
+
+      // Actualizar en base de datos
+      await UsuarioService.restablecerContrasenaPorCorreo(correo, contrasenaHasheada);
+
+      res.status(200).json({
+        success: true,
+        message: 'Tu contraseña ha sido restablecida exitosamente'
+      });
+    } catch (error) {
+      console.error('Error al restablecer contraseña:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error al restablecer la contraseña',
         error: error.message
       });
     }
