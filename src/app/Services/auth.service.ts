@@ -8,7 +8,7 @@ import { Usuario, RespuestaAuth } from '../models/usuario.model';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = '/api';
   private usuarioActual = new BehaviorSubject<Usuario | null>(null);
   public usuarioActual$ = this.usuarioActual.asObservable();
 
@@ -116,5 +116,19 @@ export class AuthService {
   // Obtener historial de pedidos
   obtenerHistorialPedidos(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/user/history`);
+  }
+
+  // Solicitar restablecimiento de contraseña
+  solicitarRestablecimiento(correo: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/auth/solicitar-restablecimiento`, { correo });
+  }
+
+  // Restablecer contraseña con código
+  restablecerContrasena(correo: string, codigo: string, nuevaContrasena: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/auth/restablecer-contrasena`, {
+      correo,
+      codigo,
+      nuevaContrasena
+    });
   }
 }
