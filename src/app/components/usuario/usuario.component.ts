@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../Services/auth.service';
@@ -24,6 +24,9 @@ export class UsuarioComponent implements OnInit {
   cargandoVistos = true;
   cargandoPedidos = true;
 
+  mostrarTodosFavoritos = false;
+  limiteFavoritos = 5;
+
   // Estado de edición de perfil
   editando = false;
   editUsuario = '';
@@ -38,10 +41,15 @@ export class UsuarioComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private productsService: ProductsService,
-    private router: Router
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    
     this.usuario = this.authService.obtenerUsuarioActual();
     if (!this.usuario) {
       this.router.navigate(['/login']);

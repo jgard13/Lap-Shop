@@ -22,71 +22,513 @@
     color: #2d3436;
     font-weight: 700;
 }
-
 .section-title {
     font-size: 1.5rem;
     color: #2d3436;
-    font-weight: 600;
+    font-weight: 700;
+}
+
+.section-card {
+    background: #f8f9fa !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    border: 1px solid #e9ecef !important;
+    margin-top: 4px !important;
+    margin-bottom: 12px !important;
 }
 
 /* Mini Cards */
 .laptop-card-mini {
-    width: 180px;
-    height: 160px;
+    width: 140px;
+    height: 170px;
+    background: #ffffff;
+    border: 1px solid #eef2f5;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.laptop-card-mini:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
 
 .laptop-card-mini img {
-    height: 80px;
+    height: 90px;
+    max-width: 100%;
     object-fit: contain;
+    margin-bottom: 8px;
+    mix-blend-mode: multiply;
 }
 
 .laptop-title {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    color: #333333;
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.25;
+    text-align: center;
+    margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    text-align: center;
-}
-
-/* Hover Effect */
-.hover-info {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.laptop-card-mini:hover .hover-info {
-    opacity: 1;
 }
 
 /* Scrollbar Customization */
-.overflow-x-auto::-webkit-scrollbar {
-    height: 6px;
+.scroll-container {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: #a0a0a0 #e9ecef;
 }
 
-.overflow-x-auto::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
+.scroll-container::-webkit-scrollbar {
+    height: 12px;
 }
 
-.overflow-x-auto::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
+.scroll-container::-webkit-scrollbar-track {
+    background: #e9ecef;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
 }
 
-.overflow-x-auto::-webkit-scrollbar-thumb:hover {
-    background: #555;
+.scroll-container::-webkit-scrollbar-thumb {
+    background: #a0a0a0;
+    border-radius: 6px;
+    border: 2px solid #e9ecef;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #7c7c7c;
+}
+
+/* Custom Scrollbar Arrows to match reference image */
+.scroll-container::-webkit-scrollbar-button:single-button {
+    background-color: #e9ecef;
+    display: block;
+    width: 20px;
+    background-size: 8px;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 1px solid #dee2e6;
+}
+
+.scroll-container::-webkit-scrollbar-button:single-button:horizontal:decrement {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23495057'><path d='M10 12L5 8l5-4v8z'/></svg>");
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.scroll-container::-webkit-scrollbar-button:single-button:horizontal:increment {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23495057'><path d='M6 4l5 4-5 4V4z'/></svg>");
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
 }
 
 .link-more {
+    color: #8E44AD;
     cursor: pointer;
-    font-weight: 500;
-    transition: color 0.2s;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: color 0.2s, text-decoration 0.2s;
+    text-decoration: none;
 }
 
 .link-more:hover {
-    color: #7c5a8a !important;
+    color: #7D3C98 !important;
+    text-decoration: underline;
 }
+
+/* ---- Pedido Card ---- */
+.pedido-card {
+    min-width: 260px;
+    max-width: 260px;
+    background: #ffffff;
+    border: 1px solid #eef2f5;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+}
+
+.pedido-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+}
+
+.pedido-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pedido-estado {
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+}
+
+.estado-completado {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.estado-pendiente {
+    background-color: #fef9c3;
+    color: #92400e;
+}
+
+.estado-cancelado {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.pedido-fecha {
+    font-size: 0.78rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.pedido-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.pedido-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.pedido-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.pedido-item-icono {
+    font-size: 1.1rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.pedido-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.pedido-item-nombre {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #2d3436;
+    margin: 0 0 2px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pedido-item-cantidad {
+    font-size: 0.72rem;
+    color: #868e96;
+    font-weight: 500;
+}
+
+.pedido-item-precio {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #495057;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.pedido-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid #f0f2f5;
+}
+
+.pedido-paypal-id {
+    font-size: 0.7rem;
+    color: #868e96;
+    font-family: monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 130px;
+}
+
+.pedido-total {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #2e7d32;
+    white-space: nowrap;
+}
+
+/* ---- Profile & Admin Premium Styling ---- */
+.profile-header-card {
+    background: #ffffff;
+    border: 1px solid #eef2f5;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+}
+
+.profile-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 20px;
+}
+
+.profile-user-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.profile-user-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.profile-user-details .user-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    color: #2d3436;
+}
+
+.profile-user-details .user-email {
+    font-size: 0.9rem;
+    margin: 0 0 8px 0;
+    color: #636e72;
+}
+
+.badge-admin-role {
+    background-color: rgba(142, 68, 173, 0.1);
+    color: #8E44AD;
+    font-weight: 700;
+    border: 1px solid rgba(142, 68, 173, 0.2);
+    font-size: 0.78rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 150px;
+}
+
+/* Botón de Cerrar Sesión (Estilo exacto a la foto del usuario) */
+.btn-logout {
+    background-color: #ffffff;
+    color: #ff3b30;
+    border: 1px solid #ff3b30;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background-color 0.2s, opacity 0.2s;
+    width: 100%;
+    text-align: center;
+}
+
+.btn-logout:hover {
+    background-color: rgba(255, 59, 48, 0.05);
+}
+
+/* Botón de Editar Perfil (Mismo estilo que Cerrar Sesión pero morado/púrpura) */
+.btn-edit-profile {
+    background-color: #ffffff;
+    color: #8e44ad;
+    border: 1px solid #8e44ad;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+    width: 100%;
+    text-align: center;
+}
+
+.btn-edit-profile:hover {
+    background-color: rgba(142, 68, 173, 0.05);
+}
+
+/* Panel de Administración Card */
+.admin-panel-card {
+    background: #ffffff;
+    border: 1px solid #eef2f5;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    padding: 24px !important;
+    margin-top: 4px !important;
+    margin-bottom: 12px !important;
+}
+
+.admin-panel-title {
+    color: #2d3436;
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+
+.admin-panel-desc {
+    color: #636e72;
+}
+
+/* Botón de Administrar Inventario */
+.btn-admin-go {
+    background-color: #8e44ad;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.btn-admin-go:hover {
+    background-color: #7d3c98;
+    color: #ffffff;
+}
+
+/* ---- Profile Edit Form Card Styling ---- */
+.profile-edit-card {
+    background: #ffffff;
+    border: 1px solid #eef2f5;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    margin-top: 24px;
+    margin-bottom: 12px;
+}
+
+.form-group-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.form-group-horizontal label {
+    width: 180px;
+    flex-shrink: 0;
+    margin-bottom: 0 !important;
+    text-align: left;
+}
+
+.form-group-horizontal .form-control {
+    flex-grow: 1;
+}
+
+@media (max-width: 767.98px) {
+    .form-group-horizontal {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    
+    .form-group-horizontal label {
+        width: 100%;
+        margin-bottom: 4px !important;
+    }
+}
+
+.profile-edit-card .form-control {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    padding: 8px 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-size: 0.95rem;
+}
+
+.profile-edit-card .form-control:focus {
+    border-color: #8e44ad;
+    box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.15);
+    outline: none;
+}
+
+.profile-edit-card .alert {
+    border-radius: 6px;
+    border: 1px solid transparent;
+}
+
+/* Form Buttons */
+.profile-edit-card form .d-flex {
+    margin-top: 25px !important;
+}
+
+.btn-form-cancel {
+    background-color: #ffffff;
+    color: #636e72;
+    border: 1px solid #dee2e6;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 8px 20px;
+    border-radius: 6px;
+    margin-right: 16px;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-form-cancel:hover {
+    background-color: #f8f9fa;
+    border-color: #b2bec3;
+    color: #2d3436;
+}
+
+.btn-form-submit {
+    background-color: #8e44ad;
+    color: #ffffff;
+    border: 1px solid #8e44ad;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 8px 20px;
+    border-radius: 6px;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-form-submit:hover {
+    background-color: #7d3c98;
+    border-color: #7d3c98;
+    color: #ffffff;
+}
+
+.btn-form-submit:disabled,
+.btn-form-cancel:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+
+
+
