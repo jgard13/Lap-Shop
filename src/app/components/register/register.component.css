@@ -10,17 +10,25 @@
   height: 100vh;
   overflow: hidden;
   background-color: #FFFFFF;
+  padding-top: 72px; /* Espacio para el header fijo */
+  box-sizing: border-box;
 }
 
 /* Encabezado */
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   background-color: #1a1a1a;
   padding: 17px 34px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 4px solid #7E57C2;
+  border-bottom: 4px solid #7E57C2;
   flex-shrink: 0;
+  z-index: 2000;
+  box-sizing: border-box;
 }
 
 .logo {
