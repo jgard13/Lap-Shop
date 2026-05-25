@@ -207,6 +207,58 @@ class UserController {
       res.status(500).json({ error: 'Error al obtener historial' });
     }
   }
+
+  // Verificar si un producto es favorito del usuario
+  static async checkFavorito(req, res) {
+    try {
+      const userId = req.user.id;
+      const { computadoraId } = req.params;
+      const esFav = await UsuarioService.esFavorito(userId, Number(computadoraId));
+      res.status(200).json({ esFavorito: esFav });
+    } catch (error) {
+      console.error('Error al verificar favorito:', error);
+      res.status(500).json({ error: 'Error al verificar favorito' });
+    }
+  }
+
+  // Agregar un producto a favoritos
+  static async agregarFavorito(req, res) {
+    try {
+      const userId = req.user.id;
+      const { computadoraId } = req.params;
+      await UsuarioService.agregarFavorito(userId, Number(computadoraId));
+      res.status(200).json({ success: true, message: 'Favorito agregado' });
+    } catch (error) {
+      console.error('Error al agregar favorito:', error);
+      res.status(500).json({ error: 'Error al agregar favorito' });
+    }
+  }
+
+  // Quitar un producto de favoritos
+  static async quitarFavorito(req, res) {
+    try {
+      const userId = req.user.id;
+      const { computadoraId } = req.params;
+      await UsuarioService.quitarFavorito(userId, Number(computadoraId));
+      res.status(200).json({ success: true, message: 'Favorito eliminado' });
+    } catch (error) {
+      console.error('Error al quitar favorito:', error);
+      res.status(500).json({ error: 'Error al quitar favorito' });
+    }
+  }
+
+  // Registrar un producto como visto recientemente
+  static async registrarVisto(req, res) {
+    try {
+      const userId = req.user.id;
+      const { computadoraId } = req.params;
+      await UsuarioService.registrarVisto(userId, Number(computadoraId));
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error al registrar visto:', error);
+      res.status(500).json({ error: 'Error al registrar visto' });
+    }
+  }
 }
 
 module.exports = UserController;

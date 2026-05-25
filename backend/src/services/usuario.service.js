@@ -6,7 +6,7 @@ class UsuarioService {
     const query = `
       INSERT INTO usuario (usuario, correo, contrasena)
       VALUES ($1, $2, $3)
-      RETURNING id, usuario, correo
+      RETURNING id, usuario, correo, rol
     `;
     try {
       const result = await pool.query(query, [usuario, correo, contrasena]);
@@ -40,7 +40,7 @@ class UsuarioService {
 
   // Obtener usuario por ID
   static async obtenerPorId(id) {
-    const query = 'SELECT id, usuario, correo FROM usuario WHERE id = $1';
+    const query = 'SELECT id, usuario, correo, rol FROM usuario WHERE id = $1';
     try {
       const result = await pool.query(query, [id]);
       return result.rows[0];
@@ -85,17 +85,32 @@ class UsuarioService {
     }
   }
 
+  // Mapear fila de computadora a formato Product (columnas reales: rutaimg, tienda, cpu, ram, etc.)
+  static _mapComputadora(row) {
+    const specs = [row.cpu, row.ram, row.memoria, row.gpu].filter(Boolean).join(' | ');
+    return {
+      id: row.id,
+      name: row.nombre,
+      price: Number(row.precio),
+      imageUrl: row.rutaimg || '',
+      description: specs || `Tienda: ${row.tienda || 'N/A'}`,
+      category: row.tienda || '',
+      inStock: true,
+      stock: 10
+    };
+  }
+
   // Obtener favoritos del usuario
   static async obtenerFavoritos(usuarioId) {
     const query = `
       SELECT c.* 
       FROM computadora c
-      JOIN favorito f ON c.id = f.computadora_id
-      WHERE f.usuario_id = $1
+      JOIN lista l ON c.id = l.id_comp
+      WHERE l.id_usu = $1 AND l.esfavorito = true
     `;
     try {
       const result = await pool.query(query, [usuarioId]);
-      return result.rows;
+      return result.rows.map(r => UsuarioService._mapComputadora(r));
     } catch (error) {
       throw error;
     }
@@ -106,14 +121,70 @@ class UsuarioService {
     const query = `
       SELECT c.* 
       FROM computadora c
-      JOIN historial_visto h ON c.id = h.computadora_id
-      WHERE h.usuario_id = $1
-      ORDER BY h.fecha DESC
+      JOIN lista l ON c.id = l.id_comp
+      WHERE l.id_usu = $1 AND (l.cantidadvi > 0 OR l.fechahora IS NOT NULL)
+      ORDER BY l.fechahora DESC
       LIMIT 10
     `;
     try {
       const result = await pool.query(query, [usuarioId]);
-      return result.rows;
+      return result.rows.map(r => UsuarioService._mapComputadora(r));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Verificar si un producto es favorito
+  static async esFavorito(usuarioId, computadoraId) {
+    const query = `SELECT 1 FROM lista WHERE id_usu = $1 AND id_comp = $2 AND esfavorito = true`;
+    try {
+      const result = await pool.query(query, [usuarioId, computadoraId]);
+      return result.rows.length > 0;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Agregar favorito
+  static async agregarFavorito(usuarioId, computadoraId) {
+    const query = `
+      INSERT INTO lista (id_usu, id_comp, esfavorito, fechahora)
+      VALUES ($1, $2, true, NOW())
+      ON CONFLICT (id_usu, id_comp)
+      DO UPDATE SET esfavorito = true, fechahora = NOW()
+    `;
+    try {
+      await pool.query(query, [usuarioId, computadoraId]);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Quitar favorito
+  static async quitarFavorito(usuarioId, computadoraId) {
+    const query = `
+      INSERT INTO lista (id_usu, id_comp, esfavorito)
+      VALUES ($1, $2, false)
+      ON CONFLICT (id_usu, id_comp)
+      DO UPDATE SET esfavorito = false
+    `;
+    try {
+      await pool.query(query, [usuarioId, computadoraId]);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Registrar un visto (upsert con fecha y vistas incrementadas)
+  static async registrarVisto(usuarioId, computadoraId) {
+    const query = `
+      INSERT INTO lista (id_usu, id_comp, cantidadvi, fechahora)
+      VALUES ($1, $2, 1, NOW())
+      ON CONFLICT (id_usu, id_comp)
+      DO UPDATE SET cantidadvi = COALESCE(lista.cantidadvi, 0) + 1, fechahora = NOW()
+    `;
+    try {
+      await pool.query(query, [usuarioId, computadoraId]);
     } catch (error) {
       throw error;
     }
@@ -231,6 +302,53 @@ class UsuarioService {
       }
       
       return Array.from(pedidosMap.values());
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Guardar código de restablecimiento y fecha de expiración
+  static async guardarCodigoRestablecimiento(correo, codigo, expiracion) {
+    const query = `
+      UPDATE usuario
+      SET codigo_restablecimiento = $1, codigo_expiracion = $2
+      WHERE correo = $3
+      RETURNING id
+    `;
+    try {
+      const result = await pool.query(query, [codigo, expiracion, correo]);
+      return result.rows[0];
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Obtener código de restablecimiento y expiración
+  static async obtenerCodigoRestablecimiento(correo) {
+    const query = `
+      SELECT codigo_restablecimiento, codigo_expiracion
+      FROM usuario
+      WHERE correo = $1
+    `;
+    try {
+      const result = await pool.query(query, [correo]);
+      return result.rows[0];
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Actualizar contraseña por correo y limpiar el código de restablecimiento
+  static async restablecerContrasenaPorCorreo(correo, contrasenaHasheada) {
+    const query = `
+      UPDATE usuario
+      SET contrasena = $1, codigo_restablecimiento = NULL, codigo_expiracion = NULL
+      WHERE correo = $2
+      RETURNING id, usuario, correo
+    `;
+    try {
+      const result = await pool.query(query, [contrasenaHasheada, correo]);
+      return result.rows[0];
     } catch (error) {
       throw error;
     }

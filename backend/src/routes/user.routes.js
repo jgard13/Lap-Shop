@@ -17,4 +17,12 @@ router.get('/usuario/:id', UserController.obtenerUsuarioCompat);
 router.get('/favoritos/:id', UserController.getFavoritos);
 router.get('/vistos/:id', UserController.getVistos);
 
+// Rutas de favoritos por producto (usa el ID del token JWT)
+router.get('/favorito/:computadoraId/check', UserController.checkFavorito);
+router.post('/favorito/:computadoraId', UserController.agregarFavorito);
+router.delete('/favorito/:computadoraId', UserController.quitarFavorito);
+
+// Registrar un producto como visto recientemente
+router.post('/visto/:computadoraId', UserController.registrarVisto);
+
 module.exports = router;
