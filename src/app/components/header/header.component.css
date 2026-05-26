@@ -114,6 +114,14 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
+  color: #ffffffcc;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.user-link:hover {
+  color: #9575CD;
 }
 
 .username {

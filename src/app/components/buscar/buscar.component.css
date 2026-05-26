@@ -5,11 +5,14 @@
 
 .search-box {
   background: #1a1a1a;
-  padding: 40px;
+  padding: 28px 32px;
   border-radius: 16px;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
   text-align: center;
   color: white;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .section-title {

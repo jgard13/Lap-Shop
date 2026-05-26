@@ -10,10 +10,10 @@
   <div class="header-right">
     @if (authService.usuarioActual$ | async; as user) {
       <div class="user-info">
-        <span class="user-link">
+        <a routerLink="/usuario" class="user-link" title="Mi perfil">
           <span class="username">{{ user.usuario }}</span>
           <span class="material-icons icon-user">person</span>
-        </span>
+        </a>
         <button class="btn-logout" (click)="cerrarSesion()" title="Cerrar sesión">
           <span class="material-icons">logout</span>
         </button>
