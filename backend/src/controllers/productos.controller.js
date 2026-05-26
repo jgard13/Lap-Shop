@@ -4,7 +4,7 @@ const getProductos = async (req, res) => {
   try {
     // La tabla 'computadora' tiene columnas: id, nombre, precio, cpu, ram, memoria, gpu, tienda, rutaimg, link
     const resultados = await Promise.race([
-      db.query('SELECT id, nombre, precio, cpu, ram, memoria, gpu, tienda, rutaimg, link FROM computadora'),
+      db.query('SELECT id, nombre, precio, cpu, ram, memoria, gpu, tienda, rutaimg, link FROM computadora WHERE activo = TRUE'),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout: BD toma demasiado tiempo')), 5000))
     ]);
 
@@ -43,7 +43,7 @@ const buscarProductos = async (req, res) => {
     const queryStr = `
       SELECT id, nombre, precio, cpu, ram, memoria, gpu, tienda, rutaimg, link 
       FROM computadora 
-      WHERE nombre ILIKE $1 OR cpu ILIKE $1 OR tienda ILIKE $1
+      WHERE (nombre ILIKE $1 OR cpu ILIKE $1 OR tienda ILIKE $1) AND activo = TRUE
     `;
     
     const resultados = await db.query(queryStr, [`%${q}%`]);
@@ -192,7 +192,7 @@ const filtrarProductos = async (req, res) => {
   const pMax = Number(precio_max) || 999999;
 
   try {
-    const result = await db.query('SELECT * FROM computadora');
+    const result = await db.query('SELECT * FROM computadora WHERE activo = TRUE');
     const laptops = result.rows;
 
     // Si no hay etiquetas seleccionadas, aplicar solo filtro de precio
