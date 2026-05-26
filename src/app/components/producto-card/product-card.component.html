@@ -1,4 +1,16 @@
 <article class="card" [class.added]="added" (click)="goToDetail()" style="cursor:pointer">
+
+  <!-- Botón de favorito en esquina superior derecha -->
+  <button
+    class="btn-fav"
+    [class.active]="esFavorito"
+    (click)="onToggleFavorito($event)"
+    [title]="esFavorito ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+    aria-label="Favorito"
+  >
+    <span class="material-icons">{{ esFavorito ? 'favorite' : 'favorite_border' }}</span>
+  </button>
+
   <img class="img" [src]="product.imageUrl" [alt]="product.name" />
 
   <div class="body">
@@ -19,4 +31,3 @@
     </button>
   </div>
 </article>
-

@@ -1,9 +1,11 @@
-import { Component, OnInit, inject, signal, PLATFORM_ID, afterNextRender } from '@angular/core';
+import { Component, OnInit, inject, signal, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ProductsService } from '../../Services/product.service';
 import { CarritoService } from '../../Services/carrito.service';
+import { FavoritosService } from '../../Services/favoritos.service';
+import { AuthService } from '../../Services/auth.service';
 import { Product } from '../../models/product.model';
 import { Chart, registerables } from 'chart.js';
 
@@ -21,6 +23,8 @@ export class ProductoDetalleComponent implements OnInit {
   private router = inject(Router);
   private productsService = inject(ProductsService);
   private carritoService = inject(CarritoService);
+  private favoritosService = inject(FavoritosService);
+  private authService = inject(AuthService);
   private platformId = inject(PLATFORM_ID);
 
   product = signal<Product | null>(null);
@@ -34,9 +38,13 @@ export class ProductoDetalleComponent implements OnInit {
         const found = products.find(p => p.id === id) ?? null;
         this.product.set(found);
         this.loading.set(false);
-        
+
         if (found && isPlatformBrowser(this.platformId)) {
           setTimeout(() => this.renderChart(found), 0);
+          // Registrar como visto si hay sesión activa
+          if (this.authService.estaAutenticado()) {
+            this.productsService.registrarVisto(found.id).subscribe();
+          }
         }
       },
       error: () => this.loading.set(false),
@@ -45,6 +53,21 @@ export class ProductoDetalleComponent implements OnInit {
 
   volverAlCatalogo() {
     this.router.navigate(['/catalogo']);
+  }
+
+  get esFavorito(): boolean {
+    const p = this.product();
+    return p ? this.favoritosService.esFavorito(p.id) : false;
+  }
+
+  toggleFavorito() {
+    const p = this.product();
+    if (!p) return;
+    if (!this.authService.estaAutenticado()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.favoritosService.toggleFavorito(p.id);
   }
 
   agregarAlCarrito(p: Product) {
