@@ -39,7 +39,8 @@
   padding: 40px 0;
   gap: 8px;
 }
-.empty-icon { font-size: 36px; }
+.empty-icon { display: flex; align-items: center; justify-content: center; }
+.empty-cart-svg { stroke: #9ca3af; }
 .empty { margin: 0; color: #9ca3af; font-size: 14px; }
 
 /* ---- Items list ---- */
