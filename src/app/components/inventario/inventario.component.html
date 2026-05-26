@@ -1,0 +1,150 @@
+<main class="container py-4 flex-grow-1">
+  <!-- Botón Volver al Perfil (Fila superior dedicada) -->
+  <div class="back-btn-row">
+    <a routerLink="/usuario" class="btn btn-back-profile text-decoration-none">
+      Volver a mi Perfil
+    </a>
+  </div>
+
+  <!-- Cabecera de Inventario -->
+  <div class="d-flex justify-content-between align-items-center inventario-header">
+    <h1 class="section-title fs-3 mb-0">Gestión de Inventario</h1>
+    <button (click)="abrirCrear()" class="btn btn-purple px-4" *ngIf="!mostrarFormulario">
+      Crear Nuevo Producto
+    </button>
+  </div>
+
+  <div *ngIf="exitoMsg" class="alert alert-success rounded-3 p-3 mb-3 d-flex align-items-center shadow-sm">
+    {{ exitoMsg }}
+  </div>
+  <div *ngIf="errorMsg" class="alert alert-danger rounded-3 p-3 mb-3 d-flex align-items-center shadow-sm">
+    {{ errorMsg }}
+  </div>
+
+  <!-- Formulario de Producto (Creación / Edición) -->
+  <div *ngIf="mostrarFormulario" class="card card-custom p-4 mb-4 shadow-sm border-0 inventario-form-card">
+    <h3 class="mb-3 fs-4 text-dark">{{ editando ? 'Editar Laptop' : 'Registrar Nueva Laptop' }}</h3>
+    <form (ngSubmit)="guardarProducto()" class="row g-3">
+      <div class="col-12 col-md-6">
+        <label class="form-label text-muted small fw-semibold mb-1">Nombre del Modelo</label>
+        <input type="text" class="form-control px-3" [(ngModel)]="nombre" name="nombre" placeholder="Ej: Laptop Asus Vivobook..." required>
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label text-muted small fw-semibold mb-1">Precio (MXN)</label>
+        <input type="number" class="form-control px-3" [(ngModel)]="precio" name="precio" placeholder="15000" required>
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label text-muted small fw-semibold mb-1">Tienda / Categoría</label>
+        <input type="text" class="form-control px-3" [(ngModel)]="tienda" name="tienda" placeholder="Ej: Amazon, Liverpool...">
+      </div>
+
+      <div class="col-12 col-md-3">
+        <label class="form-label text-muted small fw-semibold mb-1">Procesador (CPU)</label>
+        <input type="text" class="form-control px-3" [(ngModel)]="cpu" name="cpu" placeholder="Ej: Intel Core i5-1334U">
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label text-muted small fw-semibold mb-1">Memoria RAM</label>
+        <input type="text" class="form-control px-3" [(ngModel)]="ram" name="ram" placeholder="Ej: 16GB">
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label text-muted small fw-semibold mb-1">Almacenamiento</label>
+        <input type="text" class="form-control px-3" [(ngModel)]="memoria" name="memoria" placeholder="Ej: 512GB SSD">
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label text-muted small fw-semibold mb-1">Tarjeta Gráfica (GPU)</label>
+        <input type="text" class="form-control px-3" [(ngModel)]="gpu" name="gpu" placeholder="Ej: Intel Iris Xe Graphics">
+      </div>
+
+      <div class="col-12 col-md-6">
+        <label class="form-label text-muted small fw-semibold mb-1">URL de la Imagen</label>
+        <input type="text" class="form-control px-3" [(ngModel)]="rutaimg" name="rutaimg" placeholder="https://example.com/imagen.jpg">
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label text-muted small fw-semibold mb-1">Enlace de Compra (Link)</label>
+        <input type="text" class="form-control px-3" [(ngModel)]="link" name="link" placeholder="https://store.com/buy">
+      </div>
+
+      <div class="col-12 d-flex align-items-center gap-2" *ngIf="editando">
+        <input type="checkbox" id="activo" [(ngModel)]="activo" name="activo">
+        <label for="activo" class="form-label text-muted small fw-semibold mb-0">Producto Activo (Mostrar en Catálogo)</label>
+      </div>
+
+      <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+        <button type="button" (click)="cerrarFormulario()" class="btn btn-light px-4">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-purple px-4">
+          {{ editando ? 'Guardar Cambios' : 'Registrar Producto' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Listado de Productos en Inventario (Tabla) -->
+  <div class="card card-custom p-4 shadow-sm border-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title mb-0 fs-4">Listado General de Computadoras</h2>
+      <span class="badge badge-product-count px-3 py-2 fw-semibold">{{ productos.length }} productos registrados</span>
+    </div>
+
+    <div *ngIf="cargando" class="text-center py-5">
+      <div class="spinner-border text-purple" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+
+    <div *ngIf="!cargando && productos.length === 0" class="text-center py-5 text-muted bg-white border rounded-3">
+      No hay productos registrados en la base de datos.
+    </div>
+
+    <div *ngIf="!cargando && productos.length > 0" class="table-responsive rounded-3 border border-light bg-white">
+      <table class="table align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">ID</th>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Tienda</th>
+            <th>Especificaciones</th>
+            <th>Estado</th>
+            <th class="text-end pe-3">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let prod of productos" [class.table-inactive]="!prod.activo">
+            <td class="ps-3 font-monospace text-muted small">#{{ prod.id }}</td>
+            <td>
+              <div>
+                <div class="fw-semibold text-dark text-truncate" style="max-width: 250px;" [title]="prod.nombre">{{ prod.nombre }}</div>
+                <a *ngIf="prod.link && prod.link !== '#'" [href]="prod.link" target="_blank" class="small text-decoration-none text-purple">Enlace externo</a>
+              </div>
+            </td>
+            <td class="fw-bold text-success">{{ formatPrice(prod.precio) }}</td>
+            <td><span class="badge badge-store px-2.5 py-1.5 rounded">{{ prod.tienda }}</span></td>
+            <td class="small text-muted text-truncate" style="max-width: 250px;">
+              {{ filterSpecs(prod) }}
+            </td>
+            <td>
+              <span class="badge px-2.5 py-1.5 status-badge" [ngClass]="prod.activo ? 'status-active' : 'status-inactive'">
+                {{ prod.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="text-end pe-3">
+              <div class="d-flex gap-1 justify-content-end">
+                <button (click)="abrirEditar(prod)" class="btn btn-sm btn-action-edit">
+                  Editar
+                </button>
+                <button *ngIf="prod.activo" (click)="desactivarProducto(prod.id)" class="btn btn-sm btn-action-deactivate">
+                  Desactivar
+                </button>
+                <button *ngIf="!prod.activo" (click)="activarProducto(prod)" class="btn btn-sm btn-action-activate">
+                  Activar
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
