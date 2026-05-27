@@ -44,7 +44,20 @@
         </p>
       </div>
 
-      <div class="paypal-btn-wrapper">
+      <!-- Para Invitados: Pedir Correo -->
+      <div *ngIf="esInvitado()" class="guest-email-box">
+        <label class="email-label">Correo electrónico para tu confirmación</label>
+        <input 
+          type="email" 
+          class="email-input" 
+          [(ngModel)]="emailInvitado" 
+          placeholder="ejemplo@correo.com"
+          required
+        >
+        <p class="email-hint">Te enviaremos el ticket de compra y tu factura simplificada a esta dirección.</p>
+      </div>
+
+      <div class="paypal-btn-wrapper" [ngClass]="{'disabled-btn': !esEmailValido()}">
         <div #paypalButtonContainer></div>
       </div>
 

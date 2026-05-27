@@ -528,6 +528,333 @@
     cursor: not-allowed;
 }
 
+/* ---- Thermal Receipt Ticket Modal ---- */
+.ticket-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+    padding: 20px;
+}
+
+.ticket-modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: zoomInReceipt 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 95vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.ticket-modal-content::-webkit-scrollbar {
+    display: none;
+}
+
+@keyframes zoomInReceipt {
+    from {
+        transform: scale(0.92) translateY(15px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Thermal Paper container */
+.thermal-receipt {
+    background: #fafafa;
+    color: #111111;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700; /* Bold looks more like thermal ink print */
+    padding: 28px 22px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    border-left: 1px dashed #ccc;
+    border-right: 1px dashed #ccc;
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+    box-sizing: border-box;
+}
+
+/* Top Zigzag Edge */
+.zigzag-edge-top {
+    position: absolute;
+    top: -8px;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: linear-gradient(-45deg, transparent 4px, #fafafa 4px),
+                linear-gradient(45deg, transparent 4px, #fafafa 4px);
+    background-size: 8px 8px;
+}
+
+/* Bottom Zigzag Edge */
+.zigzag-edge-bottom {
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: linear-gradient(-135deg, transparent 4px, #fafafa 4px),
+                linear-gradient(135deg, transparent 4px, #fafafa 4px);
+    background-size: 8px 8px;
+}
+
+.receipt-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.receipt-header {
+    text-align: center;
+}
+
+.receipt-brand {
+    font-size: 1.45rem;
+    font-weight: 900;
+    margin: 0;
+    letter-spacing: 2px;
+    color: #000;
+}
+
+.receipt-subtitle {
+    font-size: 0.75rem;
+    margin: 2px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.receipt-info-text {
+    font-size: 0.7rem;
+    margin: 6px 0 0 0;
+    color: #444;
+    line-height: 1.35;
+}
+
+.receipt-divider {
+    border-top: 1px dashed #444;
+    margin: 6px 0;
+}
+
+.receipt-meta {
+    font-size: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.meta-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.meta-label {
+    color: #444;
+}
+
+.meta-val {
+    color: #000;
+    word-break: break-all;
+    max-width: 70%;
+    text-align: right;
+}
+
+.badge-estado-thermal {
+    background-color: #111;
+    color: #fff;
+    padding: 1px 6px;
+    font-size: 0.68rem;
+    font-weight: bold;
+    border-radius: 2px;
+}
+
+/* Items Table */
+.receipt-items-table {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.items-header {
+    display: flex;
+    font-size: 0.72rem;
+    font-weight: bold;
+    border-bottom: 1px dashed #444;
+    padding-bottom: 4px;
+}
+
+.items-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.items-row {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.72rem;
+}
+
+.item-main-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.item-sub-line {
+    font-size: 0.68rem;
+    color: #444;
+    padding-left: 25px;
+    margin-top: 1px;
+}
+
+.col-qty {
+    width: 25px;
+    flex-shrink: 0;
+}
+
+.col-desc {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 10px;
+    text-align: left;
+}
+
+.col-total {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.col-detail {
+    font-style: italic;
+}
+
+/* Totales */
+.receipt-totals {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.75rem;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.grand-total {
+    font-size: 0.95rem;
+    font-weight: 900;
+    border-top: 1px dashed #444;
+    padding-top: 6px;
+    color: #000;
+}
+
+/* Pie de Recibo */
+.receipt-footer {
+    text-align: center;
+    font-size: 0.72rem;
+    margin-top: 4px;
+}
+
+.payment-method {
+    margin: 0;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.thank-you {
+    margin: 4px 0 0 0;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+}
+
+/* Barcode */
+.barcode-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.barcode-lines {
+    height: 38px;
+    width: 170px;
+    background: repeating-linear-gradient(
+        90deg,
+        #111,
+        #111 2px,
+        transparent 2px,
+        transparent 5px,
+        #111 5px,
+        #111 7px,
+        transparent 7px,
+        transparent 9px,
+        #111 9px,
+        #111 10px,
+        transparent 10px,
+        transparent 12px
+    );
+}
+
+.barcode-number {
+    font-size: 0.62rem;
+    letter-spacing: 2px;
+    color: #333;
+}
+
+/* Receipt Action Buttons */
+.receipt-actions {
+    width: 100%;
+    max-width: 360px;
+}
+
+.btn-receipt-download {
+    background-color: #8e44ad;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    transition: background-color 0.2s, transform 0.1s;
+    flex: 1;
+}
+
+.btn-receipt-download:hover {
+    background-color: #7d3c98;
+    color: white;
+}
+
+.btn-receipt-close {
+    background-color: #ffffff;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    transition: background-color 0.2s, border-color 0.2s;
+    flex: 1;
+}
+
+.btn-receipt-close:hover {
+    background-color: #f1f3f5;
+    border-color: #b5b5b5;
+}
+
+
 
 
 

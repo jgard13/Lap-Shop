@@ -105,7 +105,7 @@
                 </div>
 
                 <div *ngIf="!cargandoPedidos && pedidos.length > 0" class="scroll-container">
-                    <div *ngFor="let pedido of pedidos" class="pedido-card">
+                    <div *ngFor="let pedido of pedidos" class="pedido-card" (click)="abrirTicket(pedido)" style="cursor: pointer;">
                         <!-- Estado del pedido -->
                         <div class="pedido-card-header">
                             <span class="pedido-estado" [ngClass]="{
@@ -192,5 +192,120 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal de Ticket Térmico -->
+    <div class="ticket-modal-overlay" *ngIf="pedidoSeleccionado" (click)="cerrarTicket()">
+        <div class="ticket-modal-content" (click)="$event.stopPropagation()">
+            
+            <div class="thermal-receipt">
+                <!-- Borde zigzag superior -->
+                <div class="zigzag-edge-top"></div>
+
+                <!-- Contenido de Recibo -->
+                <div class="receipt-body">
+                    <div class="receipt-header">
+                        <h2 class="receipt-brand">LAPCOMPARE</h2>
+                        <p class="receipt-subtitle">Venta de Tecnología y Laptops</p>
+                        <p class="receipt-info-text">RFC: AAA010101AAA<br>Av. Universidad 1000, CDMX</p>
+                    </div>
+
+                    <div class="receipt-divider"></div>
+
+                    <div class="receipt-meta">
+                        <div class="meta-row">
+                            <span class="meta-label">FECHA:</span>
+                            <span class="meta-val">{{ pedidoSeleccionado.fecha_pedido | date:'dd/MM/yyyy HH:mm' }}</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">CLIENTE:</span>
+                            <span class="meta-val">{{ usuario?.usuario }}</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">PEDIDO ID:</span>
+                            <span class="meta-val font-mono">{{ pedidoSeleccionado.paypal_order_id }}</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">ESTADO:</span>
+                            <span class="meta-val badge-estado-thermal">{{ pedidoSeleccionado.estado === 'COMPLETED' ? 'PAGADO' : 'PENDIENTE' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="receipt-divider"></div>
+
+                    <!-- Items -->
+                    <div class="receipt-items-table">
+                        <div class="items-header">
+                            <span class="col-qty">CANT</span>
+                            <span class="col-desc">DESCRIPCIÓN</span>
+                            <span class="col-total">TOTAL</span>
+                        </div>
+                        <div class="items-body">
+                            <div *ngFor="let item of pedidoSeleccionado.items" class="items-row">
+                                <div class="item-main-line">
+                                    <span class="col-qty">{{ item.cantidad }}</span>
+                                    <span class="col-desc">{{ item.nombre }}</span>
+                                    <span class="col-total">{{ formatPrice(item.precio * item.cantidad) }}</span>
+                                </div>
+                                <div class="item-sub-line">
+                                    <span class="col-detail">Unitario: {{ formatPrice(item.precio) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="receipt-divider"></div>
+
+                    <!-- Totales -->
+                    <div class="receipt-totals">
+                        <div class="total-row">
+                            <span>SUBTOTAL:</span>
+                            <span>{{ formatPrice(obtenerSubtotal(pedidoSeleccionado.total)) }}</span>
+                        </div>
+                        <div class="total-row">
+                            <span>IVA (16%):</span>
+                            <span>{{ formatPrice(obtenerIVA(pedidoSeleccionado.total)) }}</span>
+                        </div>
+                        <div class="total-row grand-total mt-2">
+                            <span>TOTAL MXN:</span>
+                            <span>{{ formatPrice(pedidoSeleccionado.total) }}</span>
+                        </div>
+                    </div>
+
+                    <div class="receipt-divider"></div>
+
+                    <!-- Pie de Recibo -->
+                    <div class="receipt-footer">
+                        <p class="payment-method">MÉTODO DE PAGO: PAYPAL</p>
+                        <p class="thank-you">¡GRACIAS POR TU COMPRA!</p>
+                        
+                        <!-- Código de barras simulado -->
+                        <div class="barcode-container mt-3">
+                            <div class="barcode-lines"></div>
+                            <span class="barcode-number">{{ pedidoSeleccionado.paypal_order_id | slice:0:16 }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Borde zigzag inferior -->
+                <div class="zigzag-edge-bottom"></div>
+            </div>
+
+            <!-- Botones de Acción Fuera del Recibo para mantener la estética -->
+            <div class="receipt-actions mt-3 d-flex gap-2 justify-content-center">
+                <button (click)="descargarXMLTicket(pedidoSeleccionado)" class="btn btn-receipt-download">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-code me-2" viewBox="0 0 16 16">
+                      <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z"/>
+                      <path d="M8.646 6.646a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L10.293 9 8.646 7.354a.5.5 0 0 1 0-.708m-1.292 0a.5.5 0 0 0-.708 0l-2 2a.5.5 0 0 0 0 .708l2 2a.5.5 0 0 0 .708-.708L5.707 9l1.647-1.646a.5.5 0 0 0 0-.708"/>
+                    </svg>
+                    Descargar XML
+                </button>
+                <button (click)="cerrarTicket()" class="btn btn-receipt-close">
+                    Cerrar Ticket
+                </button>
+            </div>
+
+        </div>
+    </div>
+
 </main>
 </div>

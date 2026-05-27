@@ -32,7 +32,7 @@ async function createOrder(req, res) {
 
 async function captureOrder(req, res) {
   try {
-    const { orderId, items } = req.body;
+    const { orderId, items, emailInvitado } = req.body;
 
     if (!orderId) {
       return res.status(400).json({ error: 'orderId es obligatorio' });
@@ -42,7 +42,7 @@ async function captureOrder(req, res) {
 
     // Intentar extraer datos del usuario si está autenticado (JWT opcional)
     let userId = null;
-    let userEmail = captureData.payer?.email_address || null;
+    let userEmail = emailInvitado || captureData.payer?.email_address || null;
     let userUsername = [captureData.payer?.name?.given_name, captureData.payer?.name?.surname].filter(Boolean).join(' ') || 'Cliente';
 
     const authHeader = req.headers['authorization'];
@@ -65,14 +65,30 @@ async function captureOrder(req, res) {
       const total = captureData.purchase_units[0].payments.captures[0].amount.value || captureData.purchase_units[0].amount.value;
       
       // Usar los items de req.body o de PayPal
-      let orderItems = items;
-      if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
+      let orderItems = [];
+      if (items && Array.isArray(items) && items.length > 0) {
+        orderItems = items.map(item => {
+          const product = item.product || item;
+          return {
+            id: product.id || null,
+            nombre: product.name || product.nombre || 'Laptop',
+            name: product.name || product.nombre || 'Laptop',
+            precio: Number(product.price || product.precio || 0),
+            price: Number(product.price || product.precio || 0),
+            cantidad: Number(item.quantity || item.cantidad || 1),
+            quantity: Number(item.quantity || item.cantidad || 1)
+          };
+        });
+      } else {
         const paypalItems = captureData.purchase_units[0].items || [];
         orderItems = paypalItems.map(pi => ({
           id: null,
+          nombre: pi.name,
           name: pi.name,
-          price: pi.unit_amount.value,
-          cantidad: Number(pi.quantity || 1)
+          precio: Number(pi.unit_amount?.value || 0),
+          price: Number(pi.unit_amount?.value || 0),
+          cantidad: Number(pi.quantity || 1),
+          quantity: Number(pi.quantity || 1)
         }));
       }
 

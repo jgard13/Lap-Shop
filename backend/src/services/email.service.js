@@ -104,6 +104,8 @@ class EmailService {
 
       const cfdiXml = EmailService.generarCfdiXml(orderId, total, items);
 
+      const ticketHtml = EmailService.generarTicketHtml(orderId, total, items, usuarioNombre);
+
       const info = await transporter.sendMail({
         from: `"LapCompare Shop" <${user}>`,
         to: correo,
@@ -151,7 +153,7 @@ class EmailService {
             
             <div style="background-color: #f3f4f6; border-left: 4px solid #7E57C2; padding: 15px; border-radius: 0 8px 8px 0; margin-top: 25px; font-size: 13px; color: #4b5563;">
               <p style="margin: 0; font-weight: 600; color: #111827; margin-bottom: 4px;">Información de Facturación:</p>
-              <p style="margin: 0;">Se adjuntó tu comprobante XML de facturación simplificada generado automáticamente. Si deseas cambiar tus datos de facturación, puedes acceder a tu perfil de usuario en nuestra plataforma.</p>
+              <p style="margin: 0;">Se adjuntó tu comprobante XML de facturación simplificada generado automáticamente. También encontrarás adjunto el ticket de compra con formato de impresora térmica para tu control personal.</p>
             </div>
             
             <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
@@ -163,6 +165,11 @@ class EmailService {
             filename: `factura_cfdi_${orderId}.xml`,
             content: cfdiXml,
             contentType: 'application/xml'
+          },
+          {
+            filename: `ticket_compra_${orderId}.html`,
+            content: ticketHtml,
+            contentType: 'text/html'
           }
         ]
       });
@@ -215,6 +222,147 @@ class EmailService {
     xml += `</cfdi:Comprobante>`;
     
     return xml;
+  }
+
+  static generarTicketHtml(orderId, total, items, usuarioNombre = 'Cliente') {
+    const subtotal = total / 1.16;
+    const impuestos = total - subtotal;
+    const fecha = new Date();
+    const fechaStr = `${fecha.toLocaleDateString('es-MX')} ${fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
+    
+    const fmt = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
+    
+    const processedItems = items.map(item => {
+      const product = item.product || item;
+      const name = product.nombre || product.name || 'Laptop';
+      const precio = Number(product.precio || product.price || 0);
+      const cantidad = Number(item.quantity || item.cantidad || 1);
+      return { name, precio, cantidad };
+    });
+
+    const itemsRows = processedItems.map(item => `
+      <div class="items-row">
+        <div class="item-main-line">
+          <span class="col-qty">${item.cantidad}</span>
+          <span class="col-desc">${item.name}</span>
+          <span class="col-total">${fmt(item.precio * item.cantidad)}</span>
+        </div>
+        <div class="item-sub-line">
+          <span class="col-detail">Unitario: ${fmt(item.precio)}</span>
+        </div>
+      </div>
+    `).join('');
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Ticket de Compra - ${orderId}</title>
+<style>
+body {
+  background-color: #f3f4f6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 20px;
+}
+.thermal-receipt {
+  background: #fafafa;
+  color: #111111;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  padding: 28px 22px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-left: 1px dashed #ccc;
+  border-right: 1px dashed #ccc;
+  width: 100%;
+  max-width: 360px;
+  box-sizing: border-box;
+  position: relative;
+}
+.zigzag-edge-top {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(-45deg, transparent 4px, #fafafa 4px), linear-gradient(45deg, transparent 4px, #fafafa 4px);
+  background-size: 8px 8px;
+}
+.zigzag-edge-bottom {
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: linear-gradient(-135deg, transparent 4px, #fafafa 4px), linear-gradient(135deg, transparent 4px, #fafafa 4px);
+  background-size: 8px 8px;
+}
+.receipt-header { text-align: center; }
+.receipt-brand { font-size: 1.45rem; font-weight: 900; margin: 0; letter-spacing: 2px; color: #000; }
+.receipt-subtitle { font-size: 0.75rem; margin: 2px 0; text-transform: uppercase; }
+.receipt-info-text { font-size: 0.7rem; margin: 6px 0 0 0; color: #444; line-height: 1.35; }
+.receipt-divider { border-top: 1px dashed #444; margin: 8px 0; }
+.receipt-meta { font-size: 0.75rem; line-height: 1.4; }
+.meta-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.meta-val { word-break: break-all; max-width: 70%; text-align: right; }
+.badge-estado-thermal { background-color: #111; color: #fff; padding: 1px 6px; font-size: 0.68rem; border-radius: 2px; }
+.receipt-items-table { display: flex; flex-direction: column; gap: 6px; }
+.items-header { display: flex; font-size: 0.72rem; border-bottom: 1px dashed #444; padding-bottom: 4px; font-weight: bold; }
+.items-body { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.items-row { display: flex; flex-direction: column; font-size: 0.72rem; }
+.item-main-line { display: flex; justify-content: space-between; }
+.item-sub-line { font-size: 0.68rem; color: #444; padding-left: 25px; margin-top: 2px; }
+.col-qty { width: 25px; flex-shrink: 0; }
+.col-desc { flex-grow: 1; padding-right: 10px; text-align: left; }
+.col-total { text-align: right; flex-shrink: 0; }
+.receipt-totals { font-size: 0.75rem; line-height: 1.4; }
+.grand-total { font-size: 0.95rem; font-weight: 900; border-top: 1px dashed #444; padding-top: 6px; color: #000; }
+.receipt-footer { text-align: center; font-size: 0.72rem; margin-top: 8px; }
+.barcode-lines { height: 38px; width: 170px; background: repeating-linear-gradient(90deg, #111, #111 2px, transparent 2px, transparent 5px, #111 5px, #111 7px, transparent 7px, transparent 9px, #111 9px, #111 10px, transparent 10px, transparent 12px); margin: 10px auto 4px auto; }
+.barcode-number { font-size: 0.62rem; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+<div class="thermal-receipt">
+  <div class="zigzag-edge-top"></div>
+  <div class="receipt-header">
+    <h2 class="receipt-brand">LAPCOMPARE</h2>
+    <p class="receipt-subtitle">Venta de Tecnología y Laptops</p>
+    <p class="receipt-info-text">RFC: AAA010101AAA<br>Av. Universidad 1000, CDMX</p>
+  </div>
+  <div class="receipt-divider"></div>
+  <div class="receipt-meta">
+    <div class="meta-row"><span>FECHA:</span><span class="meta-val">${fechaStr}</span></div>
+    <div class="meta-row"><span>CLIENTE:</span><span class="meta-val">${usuarioNombre}</span></div>
+    <div class="meta-row"><span>PEDIDO ID:</span><span class="meta-val">${orderId}</span></div>
+    <div class="meta-row"><span>ESTADO:</span><span><span class="badge-estado-thermal">PAGADO</span></span></div>
+  </div>
+  <div class="receipt-divider"></div>
+  <div class="receipt-items-table">
+    <div class="items-header"><span class="col-qty">CANT</span><span class="col-desc">DESCRIPCIÓN</span><span class="col-total">TOTAL</span></div>
+    <div class="items-body">${itemsRows}</div>
+  </div>
+  <div class="receipt-divider"></div>
+  <div class="receipt-totals">
+    <div class="total-row"><span>SUBTOTAL:</span><span>${fmt(subtotal)}</span></div>
+    <div class="total-row"><span>IVA (16%):</span><span>${fmt(impuestos)}</span></div>
+    <div class="total-row grand-total"><span>TOTAL MXN:</span><span>${fmt(total)}</span></div>
+  </div>
+  <div class="receipt-divider"></div>
+  <div class="receipt-footer">
+    <p style="margin:0;font-weight:bold;">MÉTODO DE PAGO: PAYPAL</p>
+    <p style="margin:4px 0 0 0;font-weight:900;letter-spacing:1.5px;">¡GRACIAS POR TU COMPRA!</p>
+    <div class="barcode-lines"></div>
+    <span class="barcode-number">${orderId.substring(0, 16)}</span>
+  </div>
+  <div class="zigzag-edge-bottom"></div>
+</div>
+</body>
+</html>`;
   }
 }
 

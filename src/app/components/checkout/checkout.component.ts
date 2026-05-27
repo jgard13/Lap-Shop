@@ -1,15 +1,17 @@
 import { AfterViewInit, Component, ElementRef, ViewChild, computed, inject } from '@angular/core';
 import { NgIf, NgFor, CurrencyPipe, NgClass } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { CarritoService } from '../../Services/carrito.service';
 import { PaypalService } from '../../Services/paypal.service';
+import { AuthService } from '../../Services/auth.service';
 
 declare const paypal: any;
 
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [NgIf, NgFor, CurrencyPipe, NgClass],
+  imports: [NgIf, NgFor, CurrencyPipe, NgClass, FormsModule],
   templateUrl: './checkout.component.html',
   styleUrls: ['./checkout.component.css']
 })
@@ -18,14 +20,26 @@ export class CheckoutComponent implements AfterViewInit {
 
   private carritoService = inject(CarritoService);
   private paypalService = inject(PaypalService);
+  private authService = inject(AuthService);
 
   carrito = this.carritoService.items;
   total = computed(() => this.carritoService.total());
 
+  emailInvitado = '';
   mensaje = '';
 
   ngAfterViewInit(): void {
     this.renderPaypalButton();
+  }
+
+  esInvitado(): boolean {
+    return !this.authService.obtenerUsuarioActual();
+  }
+
+  esEmailValido(): boolean {
+    if (!this.esInvitado()) return true;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(this.emailInvitado);
   }
 
   private async renderPaypalButton(): Promise<void> {
@@ -43,20 +57,29 @@ export class CheckoutComponent implements AfterViewInit {
     paypal.Buttons({
       createOrder: async () => {
         try {
+          if (this.esInvitado() && !this.esEmailValido()) {
+            this.mensaje = 'Por favor, introduce un correo electrónico válido antes de pagar.';
+            throw new Error('Email inválido');
+          }
           const response = await firstValueFrom(
             this.paypalService.crearOrder({ items: this.carrito(), total: this.total() })
           );
           return response.id;
         } catch (error) {
           console.error('Error al crear la orden:', error);
-          this.mensaje = 'No se pudo crear la orden.';
+          if (!this.mensaje) {
+            this.mensaje = 'No se pudo crear la orden.';
+          }
           throw error;
         }
       },
 
       onApprove: async (data: any) => {
         try {
-          const capture = await firstValueFrom(this.paypalService.capturarOrder(data.orderID, this.carrito()));
+          const guestEmail = this.esInvitado() ? this.emailInvitado : undefined;
+          const capture = await firstValueFrom(
+            this.paypalService.capturarOrder(data.orderID, this.carrito(), guestEmail)
+          );
           console.log('Pago capturado:', capture);
           
           // El comprobante CFDI se genera y envía por correo desde el servidor backend

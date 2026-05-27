@@ -24,6 +24,8 @@ export class UsuarioComponent implements OnInit {
   cargandoVistos = true;
   cargandoPedidos = true;
 
+  pedidoSeleccionado: any | null = null;
+
   mostrarTodosFavoritos = false;
   limiteFavoritos = 5;
 
@@ -183,6 +185,72 @@ export class UsuarioComponent implements OnInit {
   cerrarSesion(): void {
     this.authService.cerrarSesion();
     this.router.navigate(['/login']);
+  }
+
+  abrirTicket(pedido: any): void {
+    this.pedidoSeleccionado = pedido;
+  }
+
+  cerrarTicket(): void {
+    this.pedidoSeleccionado = null;
+  }
+
+  obtenerSubtotal(total: number): number {
+    return total / 1.16;
+  }
+
+  obtenerIVA(total: number): number {
+    return total - (total / 1.16);
+  }
+
+  descargarXMLTicket(pedido: any): void {
+    if (!pedido || !pedido.items) return;
+    
+    const subtotal = this.obtenerSubtotal(pedido.total);
+    const impuestos = this.obtenerIVA(pedido.total);
+    const total = pedido.total;
+    
+    const fmt = (n: number) => n.toFixed(2);
+    const fecha = pedido.fecha_pedido ? new Date(pedido.fecha_pedido).toISOString() : new Date().toISOString();
+    
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += `<Recibo Fecha="${fecha}" OrdenPayPal="${pedido.paypal_order_id}" Moneda="MXN">\n`;
+    xml += `  <Resumen>\n`;
+    xml += `    <Subtotal>${fmt(subtotal)}</Subtotal>\n`;
+    xml += `    <IVA>${fmt(impuestos)}</IVA>\n`;
+    xml += `    <Total>${fmt(total)}</Total>\n`;
+    xml += `  </Resumen>\n`;
+    xml += `  <Detalles>\n`;
+    
+    for (const item of pedido.items) {
+      const cantidad = item.cantidad || item.quantity || 1;
+      const valorUnitario = item.precio || item.price || 0;
+      const importe = cantidad * valorUnitario;
+      const descripcion = item.nombre || item.name || 'Laptop';
+      
+      xml += `    <Producto>\n`;
+      xml += `      <Id>${item.computadora_id || 'N/A'}</Id>\n`;
+      xml += `      <Nombre>${descripcion}</Nombre>\n`;
+      xml += `      <Cantidad>${cantidad}</Cantidad>\n`;
+      xml += `      <Precio>${fmt(valorUnitario)}</Precio>\n`;
+      xml += `      <Importe>${fmt(importe)}</Importe>\n`;
+      xml += `    </Producto>\n`;
+    }
+    
+    xml += `  </Detalles>\n`;
+    xml += `  <Pago>\n`;
+    xml += `    <Metodo>PayPal</Metodo>\n`;
+    xml += `    <Estado>${pedido.estado || 'Completado'}</Estado>\n`;
+    xml += `  </Pago>\n`;
+    xml += `</Recibo>`;
+    
+    const blob = new Blob([xml], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `recibo_${pedido.paypal_order_id}.xml`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   formatPrice(price: number): string {
