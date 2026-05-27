@@ -1,6 +1,6 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule, AsyncPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../Services/auth.service';
 import { CarritoService } from '../../Services/carrito.service';
 
@@ -17,13 +17,15 @@ export class HeaderComponent {
 
   constructor(
     public authService: AuthService,
-    private carritoService: CarritoService
+    private carritoService: CarritoService,
+    private router: Router
   ) {
     this.cartCount = this.carritoService.cantidad;
   }
 
   cerrarSesion() {
     this.authService.cerrarSesion();
+    this.router.navigate(['/']);
   }
 
   toggleCart() {
