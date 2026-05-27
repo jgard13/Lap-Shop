@@ -102,6 +102,8 @@ class EmailService {
         auth: { user, pass },
       });
 
+      const cfdiXml = EmailService.generarCfdiXml(orderId, total, items);
+
       const info = await transporter.sendMail({
         from: `"LapCompare Shop" <${user}>`,
         to: correo,
@@ -156,6 +158,13 @@ class EmailService {
             <p style="font-size: 12px; color: #9ca3af; text-align: center; margin: 0;">LapCompare Shop © 2026 - Herramienta de Comparación de Laptops</p>
           </div>
         `,
+        attachments: [
+          {
+            filename: `factura_cfdi_${orderId}.xml`,
+            content: cfdiXml,
+            contentType: 'application/xml'
+          }
+        ]
       });
 
       console.log('Correo de confirmacion de compra enviado:', info.messageId);
@@ -164,6 +173,49 @@ class EmailService {
       console.error('Error al enviar correo de confirmacion:', error);
       return false;
     }
+  }
+
+  static generarCfdiXml(orderId, total, items) {
+    const subtotal = total / 1.16;
+    const impuestos = total - subtotal;
+    const fecha = new Date().toISOString();
+    
+    const fmt = (n) => Number(n).toFixed(2);
+    
+    const escapeXml = (value) => {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+    };
+    
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += `<cfdi:Comprobante Version="4.0" Fecha="${fecha}" Sello="" FormaPago="01" NoCertificado="" Certificado="" SubTotal="${fmt(subtotal)}" Moneda="MXN" Total="${fmt(total)}" TipoDeComprobante="I" LugarExpedicion="00000" xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd">\n`;
+    xml += `  <cfdi:Emisor Rfc="AAA010101AAA" Nombre="Mi Empresa SA de CV" RegimenFiscal="612"/>\n`;
+    xml += `  <cfdi:Receptor Rfc="XAXX010101000" Nombre="Publico en General" UsoCFDI="G03"/>\n`;
+    xml += `  <cfdi:Conceptos>\n`;
+    
+    for (const item of items) {
+      const product = item.product || item;
+      const qty = Number(item.quantity || item.cantidad || 1);
+      const valorUnitario = Number(product.precio || product.price || 0);
+      const importe = qty * valorUnitario;
+      const descripcion = escapeXml((product.nombre || product.name || 'Laptop') + (product.descripcion || product.description ? ' - ' + (product.descripcion || product.description) : ''));
+      xml += `    <cfdi:Concepto ClaveProdServ="43211506" NoIdentificacion="${product.id || 'N/A'}" Cantidad="${qty}" ClaveUnidad="H87" Unidad="pieza" Descripcion="${descripcion}" ValorUnitario="${fmt(valorUnitario)}" Importe="${fmt(importe)}"/>\n`;
+    }
+    
+    xml += `  </cfdi:Conceptos>\n`;
+    xml += `  <cfdi:Impuestos TotalImpuestosTrasladados="${fmt(impuestos)}">\n`;
+    xml += `    <cfdi:Traslados>\n`;
+    xml += `      <cfdi:Traslado Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="${fmt(impuestos)}"/>\n`;
+    xml += `    </cfdi:Traslados>\n`;
+    xml += `  </cfdi:Impuestos>\n`;
+    xml += `</cfdi:Comprobante>`;
+    
+    return xml;
+  }
   }
 }
 

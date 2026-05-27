@@ -59,10 +59,8 @@ export class CheckoutComponent implements AfterViewInit {
           const capture = await firstValueFrom(this.paypalService.capturarOrder(data.orderID, this.carrito()));
           console.log('Pago capturado:', capture);
           
-          // Generar recibo automáticamente después del pago exitoso
-          this.carritoService.generarReciboPago(data.orderID);
-          
-          this.mensaje = 'Pago realizado correctamente. Tu recibo ha sido descargado.';
+          // El comprobante CFDI se genera y envía por correo desde el servidor backend
+          this.mensaje = 'Pago realizado correctamente. Tu comprobante CFDI ha sido enviado a tu correo.';
           this.carritoService.vaciar();
           this.paypalButtonContainer.nativeElement.innerHTML = '';
         } catch (error) {
