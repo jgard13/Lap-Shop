@@ -55,11 +55,11 @@ export class CatalogoComponent implements OnInit {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.cargarCatalogoInicial();
+      this.cargarCatalogoInicial(true);
     }
   }
 
-  cargarCatalogoInicial() {
+  cargarCatalogoInicial(isInit: boolean = false) {
     this.productsService.getAll().pipe(
       timeout(8000),
       catchError((err: any) => {
@@ -68,13 +68,19 @@ export class CatalogoComponent implements OnInit {
       })
     ).subscribe({
       next: (data: Product[]) => {
-        this.products.set(data);
-        // Calcular el precio máximo dinámico para inicializar los sliders
-        if (data.length > 0) {
-          const precios = data.map(p => p.price).filter(p => p > 0);
-          const maxPrice = precios.length > 0 ? Math.ceil(Math.max(...precios)) : 60000;
-          this.maxSliderLimit.set(maxPrice);
-          this.precioMax.set(maxPrice);
+        if (!isInit) {
+          const minVal = this.precioMin();
+          const maxVal = this.precioMax();
+          this.products.set(data.filter(p => p.price >= minVal && p.price <= maxVal));
+        } else {
+          this.products.set(data);
+          // Calcular el precio máximo dinámico para inicializar los sliders
+          if (data.length > 0) {
+            const precios = data.map(p => p.price).filter(p => p > 0);
+            const maxPrice = precios.length > 0 ? Math.ceil(Math.max(...precios)) : 60000;
+            this.maxSliderLimit.set(maxPrice);
+            this.precioMax.set(maxPrice);
+          }
         }
       },
       error: (err: any) => console.error('Error en suscripción:', err),
