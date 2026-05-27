@@ -1,5 +1,7 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, effect, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Product } from '../models/product.model';
+import { AuthService } from './auth.service';
 
 export interface CartItem {
   product: Product;
@@ -8,6 +10,9 @@ export interface CartItem {
 
 @Injectable({ providedIn: 'root' })
 export class CarritoService {
+  private platformId = inject(PLATFORM_ID);
+  private authService = inject(AuthService);
+
   // Lista reactiva del carrito
   private itemsSignal = signal<CartItem[]>([]);
 
@@ -16,6 +21,37 @@ export class CarritoService {
 
   // Señal computada con la cantidad de productos total
   cantidad = computed(() => this.itemsSignal().reduce((acc, item) => acc + item.quantity, 0));
+
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      // Suscribirse a los cambios de sesión para cargar el carrito del usuario correspondiente
+      this.authService.usuarioActual$.subscribe(user => {
+        const key = user ? `carrito_items_${user.usuario}` : 'carrito_items_invitado';
+        try {
+          const saved = localStorage.getItem(key);
+          if (saved) {
+            this.itemsSignal.set(JSON.parse(saved));
+          } else {
+            this.itemsSignal.set([]);
+          }
+        } catch (e) {
+          console.error('Error al cargar el carrito de localStorage:', e);
+          this.itemsSignal.set([]);
+        }
+      });
+
+      // Sincronizar automáticamente cualquier cambio en el carrito con la clave de sesión activa
+      effect(() => {
+        const user = this.authService.obtenerUsuarioActual();
+        const key = user ? `carrito_items_${user.usuario}` : 'carrito_items_invitado';
+        try {
+          localStorage.setItem(key, JSON.stringify(this.itemsSignal()));
+        } catch (e) {
+          console.error('Error al guardar el carrito en localStorage:', e);
+        }
+      });
+    }
+  }
 
   agregar(producto: Product) {
     this.itemsSignal.update(lista => {
