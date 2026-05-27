@@ -27,10 +27,12 @@ async function createPaypalOrder(orderData) {
   const accessToken = await getAccessToken();
 
   const processedItems = orderData.items.map(item => {
-    const qty = 1; // Backend assumes 1 per array entry, as per frontend logic
-    const unitPrice = Number(item.precio || item.price || 0).toFixed(2);
+    const product = item.product || item;
+    const qty = Number(item.quantity || item.cantidad || 1);
+    const unitPrice = Number(product.precio || product.price || 0).toFixed(2);
+    const name = String(product.nombre || product.name || 'Item').substring(0, 127);
     return {
-      name: (item.nombre || item.name || 'Item').substring(0, 127),
+      name,
       quantity: String(qty),
       unit_amount: {
         currency_code: 'MXN',

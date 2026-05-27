@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const UsuarioService = require('../services/usuario.service');
+const EmailService = require('../services/email.service');
 const {
   createPaypalOrder,
   capturePaypalOrder
@@ -39,8 +40,11 @@ async function captureOrder(req, res) {
 
     const captureData = await capturePaypalOrder(orderId);
 
-    // Intentar extraer el ID del usuario si está autenticado (JWT opcional)
+    // Intentar extraer datos del usuario si está autenticado (JWT opcional)
     let userId = null;
+    let userEmail = captureData.payer?.email_address || null;
+    let userUsername = [captureData.payer?.name?.given_name, captureData.payer?.name?.surname].filter(Boolean).join(' ') || 'Cliente';
+
     const authHeader = req.headers['authorization'];
     if (authHeader) {
       const parts = authHeader.split(' ');
@@ -48,34 +52,51 @@ async function captureOrder(req, res) {
         try {
           const decoded = jwt.verify(parts[1], process.env.JWT_SECRET);
           userId = decoded.id;
+          if (decoded.correo) userEmail = decoded.correo;
+          if (decoded.usuario) userUsername = decoded.usuario;
         } catch (jwtError) {
           console.warn('Token JWT inválido o expirado en captura de PayPal, guardando como invitado:', jwtError.message);
         }
       }
     }
 
-    // Si el usuario está autenticado, guardar la orden en la base de datos
-    if (userId && captureData.status === 'COMPLETED') {
-      try {
-        const total = captureData.purchase_units[0].payments.captures[0].amount.value || captureData.purchase_units[0].amount.value;
-        
-        // Usar los items de req.body (enviados desde el carrito del frontend) o en su defecto los de PayPal
-        let orderItems = items;
-        if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
-          const paypalItems = captureData.purchase_units[0].items || [];
-          orderItems = paypalItems.map(pi => ({
-            id: null, // No tenemos el ID local si viene directo de PayPal
-            name: pi.name,
-            price: pi.unit_amount.value,
-            cantidad: Number(pi.quantity || 1)
-          }));
-        }
+    // Si el pago es exitoso, procesar registro y envío de correos
+    if (captureData.status === 'COMPLETED') {
+      const total = captureData.purchase_units[0].payments.captures[0].amount.value || captureData.purchase_units[0].amount.value;
+      
+      // Usar los items de req.body o de PayPal
+      let orderItems = items;
+      if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
+        const paypalItems = captureData.purchase_units[0].items || [];
+        orderItems = paypalItems.map(pi => ({
+          id: null,
+          name: pi.name,
+          price: pi.unit_amount.value,
+          cantidad: Number(pi.quantity || 1)
+        }));
+      }
 
-        // Guardar pedido en PostgreSQL
-        await UsuarioService.crearPedido(userId, orderId, total, orderItems);
-        console.log(`✓ Pedido ${orderId} registrado exitosamente para el usuario ID ${userId}`);
-      } catch (dbError) {
-        console.error('Error al guardar el pedido en la base de datos:', dbError.message || dbError);
+      // Guardar pedido en PostgreSQL (si el usuario está autenticado)
+      if (userId) {
+        try {
+          await UsuarioService.crearPedido(userId, orderId, total, orderItems);
+          console.log(`✓ Pedido ${orderId} registrado exitosamente para el usuario ID ${userId}`);
+        } catch (dbError) {
+          console.error('Error al guardar el pedido en la base de datos:', dbError.message || dbError);
+        }
+      }
+
+      // Enviar correo de confirmación de compra de forma asíncrona
+      if (userEmail) {
+        EmailService.enviarConfirmacionCompra(userEmail, orderId, total, orderItems, userUsername)
+          .then(sent => {
+            if (sent) {
+              console.log(`✓ Correo de confirmación enviado exitosamente a: ${userEmail}`);
+            }
+          })
+          .catch(emailError => {
+            console.error('Error al enviar correo de confirmación:', emailError);
+          });
       }
     }
 
