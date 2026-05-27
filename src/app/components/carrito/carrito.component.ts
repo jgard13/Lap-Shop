@@ -1,14 +1,13 @@
 import { Component, computed, EventEmitter, Output } from '@angular/core';
 import { CurrencyPipe, NgIf, NgFor } from '@angular/common';
+import { Router } from '@angular/router';
 import { CarritoService, CartItem } from '../../Services/carrito.service';
 import { Signal } from '@angular/core';
-
-import { CheckoutComponent } from '../checkout/checkout.component';
 
 @Component({
   selector: 'app-carrito',
   standalone: true,
-  imports: [NgIf, NgFor, CurrencyPipe, CheckoutComponent],
+  imports: [NgIf, NgFor, CurrencyPipe],
   templateUrl: './carrito.component.html',
   styleUrls: ['./carrito.component.css'],
 })
@@ -17,7 +16,10 @@ export class CarritoComponent {
   total = computed(() => this.carritoService.total());
   @Output() close = new EventEmitter<void>();
 
-  constructor(private carritoService: CarritoService) {
+  constructor(
+    private carritoService: CarritoService,
+    private router: Router
+  ) {
     this.carrito = this.carritoService.items;
   }
 
@@ -35,6 +37,11 @@ export class CarritoComponent {
 
   exportarXML() {
     this.carritoService.exportarXML();
+  }
+
+  irACheckout() {
+    this.router.navigate(['/checkout']);
+    this.onClose();
   }
 
   onClose() {

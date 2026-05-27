@@ -1,15 +1,72 @@
-<div *ngIf="carrito().length > 0" style="margin-top: 16px; border-top: 1px solid #eee; padding-top: 16px;">
-  <div style="background-color: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 1px dashed #ccc;">
-    <p style="margin: 0; font-size: 13px; color: #555;">
-      Al pagar con PayPal, se generará y descargará tu recibo automáticamente.
-    </p>
+<div class="checkout-page">
+  <h1 class="checkout-title">Completar tu Compra</h1>
+
+  <div *ngIf="carrito().length > 0" class="checkout-grid">
+    <!-- Resumen de Compra -->
+    <div class="checkout-card">
+      <h2 class="card-title">Resumen del Pedido</h2>
+      
+      <ul class="items-list">
+        <li class="item-row" *ngFor="let item of carrito()">
+          <div class="item-details">
+            <span class="item-name">{{ item.product.name }}</span>
+            <span class="item-qty-price">{{ item.quantity }}x {{ item.product.price | currency:'MXN':'symbol-narrow':'1.0-0' }}</span>
+          </div>
+          <span class="item-subtotal">
+            {{ (item.product.price * item.quantity) | currency:'MXN':'symbol-narrow':'1.0-0' }}
+          </span>
+        </li>
+      </ul>
+
+      <div class="totals-section">
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span>{{ total() | currency:'MXN':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+        <div class="total-row">
+          <span>IVA (16%)</span>
+          <span>{{ (total() * 0.16) | currency:'MXN':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+        <div class="total-row grand-total">
+          <span>Total a pagar</span>
+          <span>{{ (total() * 1.16) | currency:'MXN':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de Pago -->
+    <div class="checkout-card">
+      <h2 class="card-title">Método de Pago</h2>
+      
+      <div class="payment-info-box">
+        <p>
+          Al completar tu pago mediante PayPal, se generará tu comprobante XML de facturación simplificada y se descargará de forma inmediata en tu navegador.
+        </p>
+      </div>
+
+      <div class="paypal-btn-wrapper">
+        <div #paypalButtonContainer></div>
+      </div>
+
+      <div *ngIf="mensaje" 
+           class="status-msg" 
+           [ngClass]="mensaje.includes('correctamente') ? 'success' : 'error'">
+        {{ mensaje }}
+      </div>
+    </div>
   </div>
 
-  <div #paypalButtonContainer></div>
-
-  <p *ngIf="mensaje" [style.color]="mensaje.includes('correctamente') ? '#28a745' : '#dc3545'" 
-     style="margin-top: 12px; font-weight: bold; text-align: center;">
-    {{ mensaje }}
-  </p>
+  <!-- Estado vacío -->
+  <div *ngIf="carrito().length === 0" class="checkout-card empty-checkout">
+    <div class="empty-icon-box">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="21" r="1"></circle>
+        <circle cx="20" cy="21" r="1"></circle>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+      </svg>
+    </div>
+    <h2 class="empty-title">Tu carrito está vacío</h2>
+    <p class="empty-desc">Agrega laptops a tu carrito desde nuestro catálogo para proceder con la compra.</p>
+    <a href="/" class="btn-home">Ver Catálogo de Laptops</a>
+  </div>
 </div>
-

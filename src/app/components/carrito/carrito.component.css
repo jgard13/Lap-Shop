@@ -161,4 +161,18 @@
 }
 .btn-vaciar:hover { background: #fef2f2; color: #ef4444; border-color: #ef4444; }
 
-.paypal-container { margin-top: 8px; }
+.checkout-container { margin-top: 8px; }
+.btn-checkout {
+  width: 100%;
+  padding: 12px;
+  background: #7E57C2;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn-checkout:hover { background: #673AB7; }
+.btn-checkout:active { transform: scale(0.98); }
