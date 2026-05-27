@@ -216,7 +216,6 @@ class EmailService {
     
     return xml;
   }
-  }
 }
 
 module.exports = EmailService;
