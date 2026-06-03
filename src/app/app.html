@@ -1,3 +1,7 @@
+@if (loadingRoute()) {
+  <div class="global-loader-bar"></div>
+}
+
 @if (showHeader()) {
   <app-header (toggleCartEvent)="onToggleCart()"></app-header>
 }
@@ -9,4 +13,19 @@
 <aside class="cart-sidebar" [class.open]="cartVisible()">
   <app-carrito (close)="onToggleCart()"></app-carrito>
 </aside>
+
+@if (legalService.tipoDocumentoVisible() !== null) {
+  <div class="legal-modal-overlay" (click)="legalService.cerrarDocumento()">
+    <div class="legal-modal-card" (click)="$event.stopPropagation()">
+      <div class="legal-modal-header">
+        <h3 class="legal-modal-title">{{ getLegalTitle() }}</h3>
+        <button class="btn-close-legal" (click)="legalService.cerrarDocumento()">✕</button>
+      </div>
+      <div class="legal-modal-body" [innerHTML]="getLegalContent()"></div>
+      <div class="legal-modal-footer">
+        <button class="btn btn-purple px-4" (click)="legalService.cerrarDocumento()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
 

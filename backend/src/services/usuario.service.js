@@ -353,6 +353,44 @@ class UsuarioService {
       throw error;
     }
   }
+
+  // Obtener todos los usuarios (excluyendo contraseñas)
+  static async obtenerTodos() {
+    const query = 'SELECT id, usuario, correo, rol FROM usuario ORDER BY id ASC';
+    try {
+      const result = await pool.query(query);
+      return result.rows;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Actualizar rol del usuario
+  static async actualizarRol(id, nuevoRol) {
+    const query = `
+      UPDATE usuario
+      SET rol = $1
+      WHERE id = $2
+      RETURNING id, usuario, correo, rol
+    `;
+    try {
+      const result = await pool.query(query, [nuevoRol, id]);
+      return result.rows[0];
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Eliminar usuario físicamente de la base de datos
+  static async eliminarUsuario(id) {
+    const query = 'DELETE FROM usuario WHERE id = $1';
+    try {
+      const result = await pool.query(query, [id]);
+      return result.rowCount > 0;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = UsuarioService;

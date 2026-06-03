@@ -146,25 +146,7 @@
         </div>
       }
 
-      <!-- Análisis del Asistente (IA) -->
-      @if (llmFeedback() || llmLoading()) {
-        <div class="assistant-feedback-banner">
-          <div class="assistant-badge">
-            <span class="material-icons animate-pulse">psychology</span>
-            <span>Análisis Técnico del Asistente</span>
-          </div>
-          <div class="assistant-content">
-            @if (llmLoading()) {
-              <div class="assistant-loader">
-                <span class="loader-spinner"></span>
-                <span class="loader-text">Analizando especificaciones de procesador, memoria RAM, SSD y tarjeta gráfica...</span>
-              </div>
-            } @else {
-              <p class="assistant-text">{{ llmFeedback() }}</p>
-            }
-          </div>
-        </div>
-      }
+
 
 
       @if (products().length === 0) {

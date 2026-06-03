@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const PDFDocument = require('pdfkit');
 
 class EmailService {
   static async enviarCodigoVerificacion(correo, codigo) {
@@ -104,7 +105,7 @@ class EmailService {
 
       const cfdiXml = EmailService.generarCfdiXml(orderId, total, items);
 
-      const ticketHtml = EmailService.generarTicketHtml(orderId, total, items, usuarioNombre);
+      const ticketPdfBuffer = await EmailService.generarTicketPdf(orderId, total, items, usuarioNombre);
 
       const info = await transporter.sendMail({
         from: `"LapCompare Shop" <${user}>`,
@@ -153,7 +154,7 @@ class EmailService {
             
             <div style="background-color: #f3f4f6; border-left: 4px solid #7E57C2; padding: 15px; border-radius: 0 8px 8px 0; margin-top: 25px; font-size: 13px; color: #4b5563;">
               <p style="margin: 0; font-weight: 600; color: #111827; margin-bottom: 4px;">Información de Facturación:</p>
-              <p style="margin: 0;">Se adjuntó tu comprobante XML de facturación simplificada generado automáticamente. También encontrarás adjunto el ticket de compra con formato de impresora térmica para tu control personal.</p>
+              <p style="margin: 0;">Se adjuntó tu comprobante XML de facturación simplificada generado automáticamente. También encontrarás adjunto el ticket de compra en formato PDF para tu control personal.</p>
             </div>
             
             <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
@@ -167,9 +168,9 @@ class EmailService {
             contentType: 'application/xml'
           },
           {
-            filename: `ticket_compra_${orderId}.html`,
-            content: ticketHtml,
-            contentType: 'text/html'
+            filename: `ticket_compra_${orderId}.pdf`,
+            content: ticketPdfBuffer,
+            contentType: 'application/pdf'
           }
         ]
       });
@@ -182,10 +183,18 @@ class EmailService {
     }
   }
 
+  static generarUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    }).toUpperCase();
+  }
+
   static generarCfdiXml(orderId, total, items) {
     const subtotal = total / 1.16;
     const impuestos = total - subtotal;
     const fecha = new Date().toISOString();
+    const uuid = EmailService.generarUUID();
     
     const fmt = (n) => Number(n).toFixed(2);
     
@@ -199,9 +208,9 @@ class EmailService {
     };
     
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-    xml += `<cfdi:Comprobante Version="4.0" Fecha="${fecha}" Sello="" FormaPago="01" NoCertificado="" Certificado="" SubTotal="${fmt(subtotal)}" Moneda="MXN" Total="${fmt(total)}" TipoDeComprobante="I" LugarExpedicion="00000" xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd">\n`;
-    xml += `  <cfdi:Emisor Rfc="AAA010101AAA" Nombre="Mi Empresa SA de CV" RegimenFiscal="612"/>\n`;
-    xml += `  <cfdi:Receptor Rfc="XAXX010101000" Nombre="Publico en General" UsoCFDI="G03"/>\n`;
+    xml += `<cfdi:Comprobante Version="4.0" Fecha="${fecha}" Sello="" FormaPago="01" NoCertificado="" Certificado="" SubTotal="${fmt(subtotal)}" Moneda="MXN" Total="${fmt(total)}" TipoDeComprobante="I" LugarExpedicion="44100" xmlns:cfdi="http://www.sat.gob.mx/cfd/4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sat.gob.mx/cfd/4 http://www.sat.gob.mx/sitio_internet/cfd/4/cfdv40.xsd">\n`;
+    xml += `  <cfdi:Emisor Rfc="AAA010101AAA" Nombre="Mi Empresa SA de CV" RegimenFiscal="601"/>\n`;
+    xml += `  <cfdi:Receptor Rfc="XAXX010101000" Nombre="Publico en General" DomicilioFiscalReceptor="44100" RegimenFiscalReceptor="605" UsoCFDI="G03"/>\n`;
     xml += `  <cfdi:Conceptos>\n`;
     
     for (const item of items) {
@@ -219,6 +228,9 @@ class EmailService {
     xml += `      <cfdi:Traslado Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="${fmt(impuestos)}"/>\n`;
     xml += `    </cfdi:Traslados>\n`;
     xml += `  </cfdi:Impuestos>\n`;
+    xml += `  <cfdi:Complemento>\n`;
+    xml += `    <tfd:TimbreFiscalDigital xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sat.gob.mx/TimbreFiscalDigital http://www.sat.gob.mx/sitio_internet/cfd/TimbreFiscalDigital/TimbreFiscalDigitalv11.xsd" Version="1.1" UUID="${uuid}" FechaTimbrado="${fecha}" RfcProvCertif="SAT970701NN3" SelloCFD="" NoCertificadoSAT="00001000000504465028" SelloSAT=""/>\n`;
+    xml += `  </cfdi:Complemento>\n`;
     xml += `</cfdi:Comprobante>`;
     
     return xml;
@@ -363,6 +375,113 @@ body {
 </div>
 </body>
 </html>`;
+  }
+
+  static generarTicketPdf(orderId, total, items, usuarioNombre = 'Cliente') {
+    return new Promise((resolve, reject) => {
+      // 80mm roll width is approx 226 pt. Let's make it 250 pt wide.
+      // Height can grow depending on items, but 400 is a good base for few items.
+      const doc = new PDFDocument({
+        size: [250, 450 + (items.length * 40)],
+        margins: { top: 15, bottom: 15, left: 15, right: 15 }
+      });
+
+      const chunks = [];
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', err => reject(err));
+
+      // Brand
+      doc.fontSize(16).font('Helvetica-Bold').text('LAPCOMPARE', { align: 'center' });
+      doc.fontSize(8).font('Helvetica').text('Venta de Tecnología y Laptops', { align: 'center' });
+      doc.text('RFC: AAA010101AAA', { align: 'center' });
+      doc.text('Av. Universidad 1000, CDMX', { align: 'center' });
+      
+      doc.moveDown(0.5);
+      doc.fontSize(8).text('-------------------------------------------------------------', { align: 'center' });
+      doc.moveDown(0.5);
+
+      // Meta
+      const fecha = new Date();
+      const fechaStr = `${fecha.toLocaleDateString('es-MX')} ${fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
+      
+      doc.font('Helvetica-Bold').text('FECHA: ', { continued: true }).font('Helvetica').text(fechaStr);
+      doc.font('Helvetica-Bold').text('CLIENTE: ', { continued: true }).font('Helvetica').text(usuarioNombre);
+      doc.font('Helvetica-Bold').text('PEDIDO ID: ', { continued: true }).font('Helvetica').text(orderId);
+      doc.font('Helvetica-Bold').text('ESTADO: ', { continued: true }).font('Helvetica').text('PAGADO');
+
+      doc.moveDown(0.5);
+      doc.font('Helvetica').text('-------------------------------------------------------------', { align: 'center' });
+      doc.moveDown(0.5);
+
+      // Table Header
+      doc.font('Helvetica-Bold');
+      doc.text('CANT', 15, doc.y, { width: 30, continued: true });
+      doc.text('DESCRIPCION', 45, doc.y, { width: 130, continued: true });
+      doc.text('TOTAL', 175, doc.y, { width: 60, align: 'right' });
+      
+      doc.moveDown(0.2);
+      doc.font('Helvetica').text('-------------------------------------------------------------', 15, doc.y, { align: 'center' });
+      doc.moveDown(0.4);
+
+      // Items
+      const fmt = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
+
+      for (const item of items) {
+        const product = item.product || item;
+        const name = product.nombre || product.name || 'Laptop';
+        const price = Number(product.precio || product.price || 0);
+        const qty = Number(item.quantity || item.cantidad || 1);
+        const itemTotal = price * qty;
+
+        const currentY = doc.y;
+        doc.font('Helvetica').text(`${qty}`, 15, currentY, { width: 30 });
+        doc.text(name, 45, currentY, { width: 130 });
+        doc.text(fmt(itemTotal), 175, currentY, { width: 60, align: 'right' });
+        doc.moveDown(0.2);
+        doc.fontSize(7).fillColor('gray').text(`Unitario: ${fmt(price)}`, 45, doc.y);
+        doc.fillColor('black').fontSize(8); // Reset colors/font size
+        doc.moveDown(0.5);
+      }
+
+      doc.fontSize(8).font('Helvetica').text('-------------------------------------------------------------', 15, doc.y, { align: 'center' });
+      doc.moveDown(0.5);
+
+      // Totals
+      const subtotal = total / 1.16;
+      const impuestos = total - subtotal;
+
+      const subtotalY = doc.y;
+      doc.font('Helvetica-Bold').text('SUBTOTAL:', 15, subtotalY);
+      doc.font('Helvetica').text(fmt(subtotal), 175, subtotalY, { align: 'right' });
+
+      const ivaY = doc.y;
+      doc.font('Helvetica-Bold').text('IVA (16%):', 15, ivaY);
+      doc.font('Helvetica').text(fmt(impuestos), 175, ivaY, { align: 'right' });
+
+      doc.moveDown(0.2);
+      doc.text('-------------------------------------------------------------', 15, doc.y, { align: 'center' });
+      doc.moveDown(0.2);
+
+      const totalY = doc.y;
+      doc.fontSize(10).font('Helvetica-Bold').text('TOTAL MXN:', 15, totalY);
+      doc.text(fmt(total), 175, totalY, { align: 'right' });
+
+      doc.fontSize(8);
+      doc.moveDown(0.8);
+      doc.text('-------------------------------------------------------------', 15, doc.y, { align: 'center' });
+      doc.moveDown(0.5);
+
+      // Footer
+      doc.font('Helvetica-Bold').text('METODO DE PAGO: PAYPAL', { align: 'center' });
+      doc.text('¡GRACIAS POR TU COMPRA!', { align: 'center' });
+      
+      doc.moveDown(0.5);
+      // Simulate barcode value text
+      doc.font('Helvetica').text(`*${orderId.substring(0, 16)}*`, { align: 'center' });
+
+      doc.end();
+    });
   }
 }
 

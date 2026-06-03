@@ -176,3 +176,35 @@
 }
 .btn-checkout:hover { background: #673AB7; }
 .btn-checkout:active { transform: scale(0.98); }
+
+/* ---- Legal links footer ---- */
+.cart-legal-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.btn-legal-link {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  transition: color 0.15s;
+}
+
+.btn-legal-link:hover {
+  color: #7E57C2;
+}
+
+.divider {
+  color: #d1d5db;
+}

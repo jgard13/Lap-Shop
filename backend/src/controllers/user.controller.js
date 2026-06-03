@@ -35,24 +35,25 @@ class UserController {
   static async updateProfile(req, res) {
     try {
       const userId = req.user.id;
-      const { usuario, correo, contrasena } = req.body;
+      const { usuario, contrasena } = req.body;
 
       // Validaciones básicas
-      if (!usuario || !correo) {
+      if (!usuario) {
         return res.status(400).json({
           success: false,
-          message: 'Nombre de usuario y correo son requeridos'
+          message: 'Nombre de usuario es requerido'
         });
       }
 
-      // Validar formato de correo
-      const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!regexCorreo.test(correo)) {
-        return res.status(400).json({
+      // Obtener el usuario original para conservar su correo inmutable
+      const user = await UsuarioService.obtenerPorId(userId);
+      if (!user) {
+        return res.status(404).json({
           success: false,
-          message: 'Correo electrónico inválido'
+          message: 'Usuario no encontrado'
         });
       }
+      const correoOriginal = user.correo;
 
       // Validar si el nuevo usuario ya está tomado por OTRO usuario
       const existingUserByName = await UsuarioService.obtenerPorUsuario(usuario);
@@ -60,15 +61,6 @@ class UserController {
         return res.status(409).json({
           success: false,
           message: 'El nombre de usuario ya está en uso por otra cuenta'
-        });
-      }
-
-      // Validar si el nuevo correo ya está tomado por OTRO usuario
-      const existingUserByEmail = await UsuarioService.obtenerPorCorreo(correo);
-      if (existingUserByEmail && existingUserByEmail.id !== userId) {
-        return res.status(409).json({
-          success: false,
-          message: 'El correo electrónico ya está en uso por otra cuenta'
         });
       }
 
@@ -90,7 +82,7 @@ class UserController {
       const usuarioActualizado = await UsuarioService.actualizarUsuario(
         userId, 
         usuario, 
-        correo, 
+        correoOriginal, 
         contrasenaHasheada
       );
 

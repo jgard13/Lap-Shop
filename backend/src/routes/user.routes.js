@@ -1,6 +1,7 @@
 const express = require('express');
 const UserController = require('../controllers/user.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const adminMiddleware = require('../middleware/admin.middleware');
 
 const router = express.Router();
 
@@ -24,5 +25,10 @@ router.delete('/favorito/:computadoraId', UserController.quitarFavorito);
 
 // Registrar un producto como visto recientemente
 router.post('/visto/:computadoraId', UserController.registrarVisto);
+
+// Rutas de Administración de Usuarios (Requieren también adminMiddleware)
+router.get('/admin/usuarios', adminMiddleware, UserController.obtenerTodos);
+router.put('/admin/usuarios/:id/rol', adminMiddleware, UserController.actualizarRol);
+router.delete('/admin/usuarios/:id', adminMiddleware, UserController.eliminarUsuario);
 
 module.exports = router;

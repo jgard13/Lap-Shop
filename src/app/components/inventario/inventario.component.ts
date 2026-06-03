@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -14,6 +14,7 @@ import { InventarioService } from '../../Services/inventario.service';
 export class InventarioComponent implements OnInit {
   productos: any[] = [];
   cargando = true;
+  guardando = false;
   errorMsg = '';
   exitoMsg = '';
 
@@ -36,6 +37,7 @@ export class InventarioComponent implements OnInit {
 
   constructor(
     private inventarioService: InventarioService,
+    private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -55,11 +57,13 @@ export class InventarioComponent implements OnInit {
           this.errorMsg = 'No se pudieron cargar los productos.';
         }
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar inventario:', err);
         this.errorMsg = 'Error al conectar con el servidor de inventario.';
         this.cargando = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -69,6 +73,7 @@ export class InventarioComponent implements OnInit {
     this.editando = false;
     this.productoIdActual = null;
     this.limpiarFormulario();
+    this.cdr.detectChanges();
   }
 
   abrirEditar(prod: any): void {
@@ -89,11 +94,13 @@ export class InventarioComponent implements OnInit {
 
     this.exitoMsg = '';
     this.errorMsg = '';
+    this.cdr.detectChanges();
   }
 
   cerrarFormulario(): void {
     this.mostrarFormulario = false;
     this.limpiarFormulario();
+    this.cdr.detectChanges();
   }
 
   limpiarFormulario(): void {
@@ -130,43 +137,57 @@ export class InventarioComponent implements OnInit {
 
     this.errorMsg = '';
     this.exitoMsg = '';
+    this.guardando = true;
+    this.cdr.detectChanges();
 
-    if (this.editando && this.productoIdActual !== null) {
+     if (this.editando && this.productoIdActual !== null) {
       this.inventarioService.actualizarProducto(this.productoIdActual, payload).subscribe({
         next: (res) => {
+          this.guardando = false;
           if (res.success) {
             this.exitoMsg = '¡Producto actualizado con éxito!';
+            this.cerrarFormulario();
             this.cargarInventario();
+            this.cdr.detectChanges();
             setTimeout(() => {
-              this.cerrarFormulario();
               this.exitoMsg = '';
-            }, 1000);
+              this.cdr.detectChanges();
+            }, 3000);
           } else {
             this.errorMsg = res.mensaje || 'Error al actualizar producto.';
+            this.cdr.detectChanges();
           }
         },
         error: (err) => {
           console.error(err);
+          this.guardando = false;
           this.errorMsg = 'Error al actualizar producto en el servidor.';
+          this.cdr.detectChanges();
         }
       });
     } else {
       this.inventarioService.crearProducto(payload).subscribe({
         next: (res) => {
+          this.guardando = false;
           if (res.success) {
             this.exitoMsg = '¡Producto creado con éxito!';
+            this.cerrarFormulario();
             this.cargarInventario();
+            this.cdr.detectChanges();
             setTimeout(() => {
-              this.cerrarFormulario();
               this.exitoMsg = '';
-            }, 1000);
+              this.cdr.detectChanges();
+            }, 3000);
           } else {
             this.errorMsg = res.mensaje || 'Error al crear producto.';
+            this.cdr.detectChanges();
           }
         },
         error: (err) => {
           console.error(err);
+          this.guardando = false;
           this.errorMsg = 'Error al crear producto en el servidor.';
+          this.cdr.detectChanges();
         }
       });
     }

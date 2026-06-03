@@ -2,6 +2,7 @@ import { Component, computed, EventEmitter, Output } from '@angular/core';
 import { CurrencyPipe, NgIf, NgFor } from '@angular/common';
 import { Router } from '@angular/router';
 import { CarritoService, CartItem } from '../../Services/carrito.service';
+import { LegalService } from '../../Services/legal.service';
 import { Signal } from '@angular/core';
 
 @Component({
@@ -18,7 +19,8 @@ export class CarritoComponent {
 
   constructor(
     private carritoService: CarritoService,
-    private router: Router
+    private router: Router,
+    public legalService: LegalService
   ) {
     this.carrito = this.carritoService.items;
   }

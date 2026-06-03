@@ -29,13 +29,9 @@
         <label class="form-label text-muted small fw-semibold mb-1">Nombre del Modelo</label>
         <input type="text" class="form-control px-3" [(ngModel)]="nombre" name="nombre" placeholder="Ej: Laptop Asus Vivobook..." required>
       </div>
-      <div class="col-12 col-md-3">
+      <div class="col-12 col-md-6">
         <label class="form-label text-muted small fw-semibold mb-1">Precio (MXN)</label>
         <input type="number" class="form-control px-3" [(ngModel)]="precio" name="precio" placeholder="15000" required>
-      </div>
-      <div class="col-12 col-md-3">
-        <label class="form-label text-muted small fw-semibold mb-1">Tienda / Categoría</label>
-        <input type="text" class="form-control px-3" [(ngModel)]="tienda" name="tienda" placeholder="Ej: Amazon, Liverpool...">
       </div>
 
       <div class="col-12 col-md-3">
@@ -55,13 +51,9 @@
         <input type="text" class="form-control px-3" [(ngModel)]="gpu" name="gpu" placeholder="Ej: Intel Iris Xe Graphics">
       </div>
 
-      <div class="col-12 col-md-6">
+      <div class="col-12">
         <label class="form-label text-muted small fw-semibold mb-1">URL de la Imagen</label>
         <input type="text" class="form-control px-3" [(ngModel)]="rutaimg" name="rutaimg" placeholder="https://example.com/imagen.jpg">
-      </div>
-      <div class="col-12 col-md-6">
-        <label class="form-label text-muted small fw-semibold mb-1">Enlace de Compra (Link)</label>
-        <input type="text" class="form-control px-3" [(ngModel)]="link" name="link" placeholder="https://store.com/buy">
       </div>
 
       <div class="col-12 d-flex align-items-center gap-2" *ngIf="editando">
@@ -70,11 +62,12 @@
       </div>
 
       <div class="col-12 d-flex justify-content-end gap-2 mt-4">
-        <button type="button" (click)="cerrarFormulario()" class="btn btn-light px-4">
+        <button type="button" (click)="cerrarFormulario()" class="btn btn-light px-4" [disabled]="guardando">
           Cancelar
         </button>
-        <button type="submit" class="btn btn-purple px-4">
-          {{ editando ? 'Guardar Cambios' : 'Registrar Producto' }}
+        <button type="submit" class="btn btn-purple px-4 d-flex align-items-center gap-2" [disabled]="guardando">
+          <span *ngIf="guardando" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          {{ guardando ? 'Guardando...' : (editando ? 'Guardar Cambios' : 'Registrar Producto') }}
         </button>
       </div>
     </form>
@@ -104,7 +97,6 @@
             <th class="ps-3">ID</th>
             <th>Producto</th>
             <th>Precio</th>
-            <th>Tienda</th>
             <th>Especificaciones</th>
             <th>Estado</th>
             <th class="text-end pe-3">Acciones</th>
@@ -116,11 +108,9 @@
             <td>
               <div>
                 <div class="fw-semibold text-dark text-truncate" style="max-width: 250px;" [title]="prod.nombre">{{ prod.nombre }}</div>
-                <a *ngIf="prod.link && prod.link !== '#'" [href]="prod.link" target="_blank" class="small text-decoration-none text-purple">Enlace externo</a>
               </div>
             </td>
             <td class="fw-bold text-success">{{ formatPrice(prod.precio) }}</td>
-            <td><span class="badge badge-store px-2.5 py-1.5 rounded">{{ prod.tienda }}</span></td>
             <td class="small text-muted text-truncate" style="max-width: 250px;">
               {{ filterSpecs(prod) }}
             </td>

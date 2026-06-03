@@ -66,6 +66,13 @@ export class AuthService {
           const token = localStorage.getItem('token');
           if (token) user.token = token;
         }
+
+        // Verificar si el token está expirado
+        if (user.token && this.tokenExpirado(user.token)) {
+          this.cerrarSesion();
+          return;
+        }
+
         this.usuarioActual.next(user);
       } catch (error) {
         console.error('Error cargando usuario:', error);
@@ -94,9 +101,24 @@ export class AuthService {
     return null;
   }
 
+  // Verificar si el token está expirado
+  tokenExpirado(token: string): boolean {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return true;
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      if (!payload.exp) return false;
+      return (payload.exp * 1000) < Date.now();
+    } catch {
+      return true;
+    }
+  }
+
   // Verificar si está autenticado
   estaAutenticado(): boolean {
-    return this.usuarioActual.value !== null;
+    const user = this.usuarioActual.value;
+    if (!user || !user.token) return false;
+    return !this.tokenExpirado(user.token);
   }
 
   // Obtener datos del usuario

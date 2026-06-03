@@ -41,8 +41,6 @@ export class CatalogoComponent implements OnInit {
   // Estados de carga e información adicional
   mensajeSistema = signal<string>('');
   tipoMatch = signal<string>('Exacta');
-  llmFeedback = signal<string>('');
-  llmLoading = signal<boolean>(false);
   showSidebarMobile = signal<boolean>(false);
 
   private filterTimeout: any;
@@ -150,7 +148,6 @@ export class CatalogoComponent implements OnInit {
       this.mensajeSistema.set('');
       this.tipoMatch.set('Exacta');
       this.sugerenciaEspecialista.set(null);
-      this.llmFeedback.set('');
       this.cargarCatalogoInicial();
       return;
     }
@@ -161,13 +158,6 @@ export class CatalogoComponent implements OnInit {
         this.mensajeSistema.set(data.mensaje);
         this.tipoMatch.set(data.tipo);
         this.sugerenciaEspecialista.set(data.sugerencia);
-
-        // Solicitar análisis del Asistente Técnico IA si hay resultados
-        if (data.laptops.length > 0) {
-          this.obtenerFeedbackIA(data.laptops);
-        } else {
-          this.llmFeedback.set('');
-        }
       },
       error: (err) => {
         console.error('Error al filtrar productos:', err);
@@ -175,27 +165,6 @@ export class CatalogoComponent implements OnInit {
     });
   }
 
-  obtenerFeedbackIA(laptops: Product[]) {
-    this.llmLoading.set(true);
-    this.llmFeedback.set('Analizando especificaciones técnicas de los dispositivos...');
-    
-    this.productsService.obtenerFeedbackAsistente(
-      laptops.slice(0, 3),
-      this.selectedCategorias(),
-      this.precioMin(),
-      this.precioMax()
-    ).subscribe({
-      next: (res) => {
-        this.llmFeedback.set(res.feedback);
-        this.llmLoading.set(false);
-      },
-      error: (err) => {
-        console.error('Error al obtener feedback IA:', err);
-        this.llmFeedback.set('He seleccionado estos modelos basándose en su excelente balance de componentes y su capacidad para ejecutar los programas que necesitas.');
-        this.llmLoading.set(false);
-      }
-    });
-  }
 
   toggleSidebarMobile() {
     this.showSidebarMobile.set(!this.showSidebarMobile());

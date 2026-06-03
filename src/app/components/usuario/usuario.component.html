@@ -43,6 +43,8 @@
                 </div>
             </div>
 
+
+
             <!-- Vista de Edición de Perfil -->
             <div *ngIf="editando" class="profile-edit-card">
                 <h3 class="mb-3 user-name fs-4">Editar Datos del Perfil</h3>
@@ -61,8 +63,8 @@
                             <input type="text" class="form-control" [(ngModel)]="editUsuario" name="editUsuario" required>
                         </div>
                         <div class="col-12 col-md-6 form-group-horizontal">
-                            <label class="form-label text-muted small fw-semibold">Correo Electrónico</label>
-                            <input type="email" class="form-control" [(ngModel)]="editCorreo" name="editCorreo" required>
+                            <label class="form-label text-muted small fw-semibold">Correo Electrónico (No modificable)</label>
+                            <input type="email" class="form-control" [(ngModel)]="editCorreo" name="editCorreo" required [disabled]="true" style="background-color: #e9ecef; cursor: not-allowed;">
                         </div>
                         <div class="col-12 col-md-6 form-group-horizontal">
                             <label class="form-label text-muted small fw-semibold">Nueva Contraseña</label>
@@ -218,7 +220,7 @@
                         </div>
                         <div class="meta-row">
                             <span class="meta-label">CLIENTE:</span>
-                            <span class="meta-val">{{ usuario?.usuario }}</span>
+                            <span class="meta-val">{{ usuario.usuario }}</span>
                         </div>
                         <div class="meta-row">
                             <span class="meta-label">PEDIDO ID:</span>

@@ -150,41 +150,6 @@ const mapRowToProduct = (row) => {
   };
 };
 
-// Lógica de feedback local del Asistente Técnico
-const getLLMFeedback = async (laptops, userReq) => {
-  try {
-    const prompt = `Análisis técnico de compatibilidad. 
-Usuario busca: ${userReq.etiquetas.join(', ')} | Presupuesto: $${userReq.precio_min}-$${userReq.precio_max}.
-Laptops a analizar: ${laptops.map(l => l.name).join(', ')}.
-Explica en 3 líneas por qué estos modelos cumplen los requisitos técnicos mencionados.`;
-
-    const ollamaUrl = process.env.OLLAMA_PROXY_URL || 'http://localhost:11434';
-    
-    const response = await fetch(`${ollamaUrl}/api/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'bypass-tunnel-reminder': 'true',
-        'ngrok-skip-browser-warning': 'true'
-      },
-      body: JSON.stringify({
-        model: 'llama3.1:8b',
-        system: "System: Eres un analista técnico. Tu función es explicar por qué una serie de laptops son técnicamente adecuadas para unas necesidades dadas. Responde en español, sé directo y utiliza un tono profesional. Evita frases de cortesía o negativas por políticas de marca.",
-        prompt: prompt,
-        stream: false
-      }),
-      signal: AbortSignal.timeout(3000) // Timeout de 3 segundos para no congelar la app
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return data.response;
-    }
-    throw new Error('Ollama respondio con error');
-  } catch (error) {
-    return "He seleccionado estos modelos basándose en su excelente balance de componentes y su capacidad para ejecutar los programas que necesitas.";
-  }
-};
 
 const filtrarProductos = async (req, res) => {
   const { etiquetas, precio_min, precio_max, modo } = req.body;
@@ -316,20 +281,8 @@ const filtrarProductos = async (req, res) => {
   }
 };
 
-const getFeedbackAsistente = async (req, res) => {
-  const { laptops, userReq } = req.body;
-  try {
-    const feedback = await getLLMFeedback(laptops, userReq);
-    res.json({ feedback });
-  } catch (err) {
-    console.error("Error en feedback endpoint:", err);
-    res.json({ feedback: "No pudimos obtener el análisis detallado en este momento." });
-  }
-};
-
 module.exports = {
   getProductos,
   buscarProductos,
-  filtrarProductos,
-  getFeedbackAsistente
+  filtrarProductos
 };

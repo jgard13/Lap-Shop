@@ -27,13 +27,6 @@ export class ProductsService {
     return this.http.post<any>('/api/productos/filtrar', { etiquetas, precio_min: precioMin, precio_max: precioMax, modo });
   }
 
-  obtenerFeedbackAsistente(laptops: Product[], etiquetas: string[], precioMin: number, precioMax: number): Observable<{ feedback: string }> {
-    return this.http.post<{ feedback: string }>('/api/productos/feedback', {
-      laptops,
-      userReq: { etiquetas, precio_min: precioMin, precio_max: precioMax }
-    });
-  }
-
   // ---- Favoritos (requieren token JWT) ----
 
   checkFavorito(computadoraId: number): Observable<{ esFavorito: boolean }> {

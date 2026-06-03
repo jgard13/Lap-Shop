@@ -1,0 +1,93 @@
+<div ngSkipHydration>
+<main class="container py-4 flex-grow-1">
+  <!-- Header Card -->
+  <div class="admin-header-card mb-4 p-4 rounded-3 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h2 class="admin-title mb-1">Control de Usuarios</h2>
+        <p class="admin-desc mb-0 text-muted small">
+          Administra los roles de acceso de los usuarios registrados y gestiona las cuentas del sistema.
+        </p>
+      </div>
+      <button routerLink="/usuario" class="btn btn-secondary-custom">
+        Volver al Perfil
+      </button>
+    </div>
+  </div>
+
+  <!-- Alertas de Feedback -->
+  <div *ngIf="errorMsg" class="alert alert-danger alert-dismissible fade show shadow-sm p-3 mb-4 rounded-3 d-flex align-items-center" role="alert">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-exclamation-triangle-fill me-2 flex-shrink-0" viewBox="0 0 16 16">
+      <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+    </svg>
+    <div>{{ errorMsg }}</div>
+  </div>
+
+  <div *ngIf="exitoMsg" class="alert alert-success alert-dismissible fade show shadow-sm p-3 mb-4 rounded-3 d-flex align-items-center" role="alert">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill me-2 flex-shrink-0" viewBox="0 0 16 16">
+      <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+    </svg>
+    <div>{{ exitoMsg }}</div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-purple" role="status">
+      <span class="visually-hidden">Cargando usuarios...</span>
+    </div>
+    <p class="text-muted mt-2 small">Cargando el listado de usuarios...</p>
+  </div>
+
+  <!-- Users Table Container -->
+  <div *ngIf="!cargando" class="card-table-container shadow-sm rounded-3 bg-white overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th scope="col" class="ps-4 py-3">ID</th>
+            <th scope="col" class="py-3">Usuario</th>
+            <th scope="col" class="py-3">Correo Electrónico</th>
+            <th scope="col" class="py-3 text-center">Rol Administrativo</th>
+            <th scope="col" class="pe-4 py-3 text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of usuarios" [class.table-active]="user.id === usuarioActual?.id">
+            <td class="ps-4 fw-bold text-muted">#{{ user.id }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar-mini">{{ user.usuario.substring(0, 2).toUpperCase() }}</div>
+                <div>
+                  <span class="fw-semibold text-dark">{{ user.usuario }}</span>
+                  <span *ngIf="user.id === usuarioActual?.id" class="badge bg-purple ms-2 small">Tú</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <a href="mailto:{{ user.correo }}" class="text-decoration-none email-link text-muted">{{ user.correo }}</a>
+            </td>
+            <td class="text-center">
+              <span class="badge px-3 py-2" [ngClass]="user.rol === 'admin' ? 'bg-danger' : 'bg-secondary'">
+                {{ user.rol === 'admin' ? 'Administrador' : 'Usuario Común' }}
+              </span>
+            </td>
+            <td class="pe-4 text-end">
+              <button 
+                (click)="eliminarUsuario(user)" 
+                class="btn btn-delete-custom d-flex align-items-center gap-1 ms-auto" 
+                [disabled]="user.id === usuarioActual?.id || eliminandoId !== null"
+                title="{{ user.id === usuarioActual?.id ? 'No puedes eliminarte a ti mismo' : 'Eliminar usuario' }}">
+                <span *ngIf="eliminandoId === user.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <svg *ngIf="eliminandoId !== user.id" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
+                  <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16H4.885a2 2 0 0 1-1.993-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"/>
+                </svg>
+                <span>{{ eliminandoId === user.id ? 'Eliminando...' : 'Eliminar' }}</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+</div>

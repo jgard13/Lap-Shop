@@ -76,7 +76,7 @@
         </div>
 
         <!-- Campo Confirmar Contraseña -->
-        <div class="form-group">
+        <div class="form-group" style="margin-top: 15px;">
           <label for="contrasenaConfirmar" class="form-label">Confirmar Contraseña</label>
           <input
             type="password"
@@ -87,6 +87,22 @@
             name="contrasenaConfirmar"
             required
           />
+        </div>
+
+        <!-- Checkbox de Términos y Condiciones -->
+        <div class="form-group-checkbox d-flex align-items-start gap-2 mb-3" style="margin-top: 15px;">
+          <input
+            type="checkbox"
+            id="aceptarTerminos"
+            [(ngModel)]="aceptarTerminos"
+            name="aceptarTerminos"
+            required
+            class="form-check-input mt-1"
+            style="width: 16px; height: 16px; cursor: pointer;"
+          />
+          <label for="aceptarTerminos" class="form-check-label text-muted small lh-sm" style="font-size: 0.82rem; cursor: pointer; user-select: none;">
+            Acepto los <a (click)="legalService.abrirDocumento('terminos')" class="text-purple fw-bold" style="cursor: pointer; text-decoration: underline;">Términos y Condiciones</a> y el <a (click)="legalService.abrirDocumento('privacidad')" class="text-purple fw-bold" style="cursor: pointer; text-decoration: underline;">Aviso de Privacidad</a> de LapCompare.
+          </label>
         </div>
 
         <!-- Botón Registrarse -->

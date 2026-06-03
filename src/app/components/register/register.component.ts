@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../Services/auth.service';
+import { LegalService } from '../../Services/legal.service';
 
 @Component({
   selector: 'app-register',
@@ -16,6 +17,7 @@ export class RegisterComponent {
   correo: string = '';
   contrasena: string = '';
   contrasenaConfirmar: string = '';
+  aceptarTerminos: boolean = false;
   cargando: boolean = false;
   mensaje: string = '';
   tipoMensaje: 'error' | 'exito' = 'error';
@@ -30,7 +32,8 @@ export class RegisterComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    public legalService: LegalService
   ) {}
 
   validarContrasena(): void {
@@ -44,6 +47,11 @@ export class RegisterComponent {
     // Validaciones
     if (!this.usuario || !this.correo || !this.contrasena || !this.contrasenaConfirmar) {
       this.mostrarMensaje('Por favor completa todos los campos', 'error');
+      return;
+    }
+
+    if (!this.aceptarTerminos) {
+      this.mostrarMensaje('Debes aceptar los Términos y Condiciones y el Aviso de Privacidad para registrarte', 'error');
       return;
     }
 

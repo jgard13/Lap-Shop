@@ -26,3 +26,121 @@
   .cart-sidebar { width: 100%; right: -100%; }
   .cart-sidebar.open { right: 0; }
 }
+
+/* Barra de carga global en la parte superior */
+.global-loader-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 4px;
+  width: 100%;
+  z-index: 9999;
+  background: linear-gradient(90deg, #6200ee, #bb86fc, #03dac6, #6200ee);
+  background-size: 300% 100%;
+  animation: loading-bar-animation 1.5s infinite linear;
+}
+
+@keyframes loading-bar-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Modal Legal Global */
+.legal-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.legal-modal-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 650px;
+  max-height: 80vh;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modal-fade-in 300ms ease-out;
+}
+
+.legal-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #eef2f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.legal-modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.btn-close-legal {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #8c9ba5;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.btn-close-legal:hover {
+  color: #1a1a1a;
+}
+
+.legal-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #4a4a4a;
+}
+
+.legal-modal-body h3, .legal-modal-body h4, .legal-modal-body h5 {
+  color: #1a1a1a;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.legal-modal-body p, .legal-modal-body ul, .legal-modal-body ol {
+  margin-bottom: 1rem;
+}
+
+.legal-modal-footer {
+  padding: 14px 20px;
+  border-top: 1px solid #eef2f6;
+  background-color: #fcfdfe;
+  display: flex;
+  justify-content: flex-end;
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
