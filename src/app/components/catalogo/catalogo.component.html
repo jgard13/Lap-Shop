@@ -95,6 +95,13 @@
           </div>
         </div>
       </div>
+      
+      <!-- Enlaces legales al final del sidebar de filtros -->
+      <div class="sidebar-legal-footer">
+        <button (click)="legalService.abrirDocumento('terminos')" class="btn-legal-link">Términos de Servicio</button>
+        <span class="divider">|</span>
+        <button (click)="legalService.abrirDocumento('privacidad')" class="btn-legal-link">Aviso de Privacidad</button>
+      </div>
     </aside>
 
     <!-- Overlay móvil -->

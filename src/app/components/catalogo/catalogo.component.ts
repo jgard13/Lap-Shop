@@ -5,6 +5,7 @@ import { timeout, catchError, of } from 'rxjs';
 import { Product } from '../../models/product.model';
 import { ProductsService } from '../../Services/product.service';
 import { CarritoService } from '../../Services/carrito.service';
+import { LegalService } from '../../Services/legal.service';
 import { ProductCardComponent } from '../producto-card/product-card.component';
 
 @Component({
@@ -48,6 +49,7 @@ export class CatalogoComponent implements OnInit {
   constructor(
     private productsService: ProductsService,
     private carritoService: CarritoService,
+    public legalService: LegalService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 

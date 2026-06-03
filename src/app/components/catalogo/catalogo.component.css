@@ -37,9 +37,16 @@
   top: 72px;               /* offset to sit below header */
   left: 0;              /* left edge of screen */
   height: calc(100vh - 72px);       /* fill remaining height */
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   z-index: 1000;
   box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 16px;
 }
 
 .sidebar-header {
@@ -162,3 +169,35 @@
 /* Animaciones */
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes slideInDown { from { transform: translateY(-8px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+/* Enlaces legales al final del sidebar de filtros */
+.sidebar-legal-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.btn-legal-link {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  transition: color 0.15s;
+}
+
+.btn-legal-link:hover {
+  color: #7E57C2;
+}
+
+.divider {
+  color: #d1d5db;
+}
